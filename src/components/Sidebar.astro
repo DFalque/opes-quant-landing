@@ -1,0 +1,67 @@
+---
+/**
+ * Left sidebar with navigation links. Renders client-side: links go to
+ * the appropriate Astro pages. The "logout" button clears localStorage
+ * and reloads.
+ */
+interface Props {
+  active?: 'dashboard' | 'positions' | 'analyses' | 'sessions' | 'agent' | 'observability' | 'skills' | 'tools' | 'backtest' | 'backtest-cripto';
+}
+
+const { active } = Astro.props;
+
+const links = [
+  { key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { key: 'positions', href: '/dashboard/positions', label: 'Posiciones', icon: '📈' },
+  { key: 'analyses', href: '/dashboard/analyses', label: 'Análisis', icon: '🔬' },
+  { key: 'sessions', href: '/dashboard/sessions', label: 'Sesiones', icon: '⏱️' },
+  { key: 'agent', href: '/dashboard/agent', label: 'Agente', icon: '🤖' },
+  { key: 'observability', href: '/dashboard/observability', label: 'Observabilidad', icon: '📡' },
+  { key: 'backtest', href: '/dashboard/backtest', label: 'Backtest Bolsa', icon: '🧪' },
+  { key: 'backtest-cripto', href: '/dashboard/backtest-cripto', label: 'Backtest Cripto', icon: '🪙' },
+  { key: 'skills', href: '/skills', label: 'Skills', icon: '🧩' },
+  { key: 'drafts', href: '/skills/drafts', label: 'Borradores', icon: '📝' },
+  { key: 'tools', href: '/tools', label: 'Tools', icon: '🔧' },
+] as const;
+---
+<aside class="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-30">
+  <div class="px-6 py-5 border-b border-gray-800">
+    <h1 class="text-xl font-bold tracking-tight">opes-quant</h1>
+    <p class="text-xs text-gray-400 mt-1">Trading agent dashboard</p>
+  </div>
+
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    {links.map((link) => (
+      <a
+        href={link.href}
+        class:list={[
+          'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+          active === link.key
+            ? 'bg-brand-600 text-white font-semibold'
+            : 'text-gray-300 hover:bg-gray-800 hover:text-white',
+        ]}
+      >
+        <span class="text-base" aria-hidden="true">{link.icon}</span>
+        <span>{link.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="px-3 py-4 border-t border-gray-800">
+    <button
+      id="logout-btn"
+      type="button"
+      class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+    >
+      <span aria-hidden="true">🚪</span>
+      <span>Salir</span>
+    </button>
+  </div>
+</aside>
+
+<script>
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    localStorage.removeItem('opes_auth');
+    window.location.href = '/login';
+  });
+</script>

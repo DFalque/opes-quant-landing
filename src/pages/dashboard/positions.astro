@@ -1,0 +1,97 @@
+---
+/**
+ * /dashboard/positions — full positions table with filters.
+ * Filters are client-side; the data fetch happens once on page load (Astro static).
+ */
+import Layout from '../../layouts/Layout.astro';
+import Table from '../../components/Table.astro';
+import Badge from '../../components/Badge.astro';
+import { formatCurrency, formatDateTime, formatPercent, pnlColor } from '../../lib/format';
+
+// Static build: data is re-fetched client-side via a small React island below.
+// For the initial render we show an empty state.
+const rows: any[] = [];
+---
+<Layout title="Posiciones" active="positions">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Posiciones</h2>
+    <p class="text-sm text-muted mt-1">Histórico completo de posiciones (abiertas y cerradas).</p>
+  </div>
+
+  <div id="positions-root" data-testid="positions-table">
+    <Table
+      columns={[
+        { key: 'ticker', label: 'Ticker' },
+        { key: 'status', label: 'Estado' },
+        { key: 'qty', label: 'Qty', align: 'right', format: (r: any) => r.qty.toString() },
+        { key: 'entry_price', label: 'Entry', align: 'right', format: (r: any) => formatCurrency(r.entry_price) },
+        { key: 'entry_ts', label: 'Entry date', format: (r: any) => formatDateTime(r.entry_ts) },
+        { key: 'pnl', label: 'P&L', align: 'right', format: (r: any) => r.pnl !== null ? formatCurrency(r.pnl) : '—' },
+        { key: 'pnl_pct', label: 'P&L %', align: 'right', format: (r: any) => r.pnl_pct !== null ? formatPercent(r.pnl_pct) : '—' },
+        { key: 'close_reason', label: 'Cierre' },
+      ]}
+      rows={rows}
+      emptyMessage="Cargando posiciones… (o no hay datos en la DB)"
+    />
+  </div>
+
+  <script>
+    import { api } from '../../lib/api';
+    import { formatCurrency, formatDateTime, formatPercent } from '../../lib/format';
+
+    async function load() {
+      const root = document.getElementById('positions-root');
+      if (!root) return;
+      try {
+        const data = await api.positions({ limit: 200 });
+        if (data.items.length === 0) {
+          root.innerHTML = '<div class="card text-sm text-muted">Sin posiciones registradas.</div>';
+          return;
+        }
+        const table = document.createElement('table');
+        table.className = 'min-w-full divide-y divide-gray-200 text-sm bg-white rounded-lg overflow-hidden';
+        table.innerHTML = `
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Ticker</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Estado</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Qty</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Entry</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">P&L</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">P&L %</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Cierre</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100"></tbody>
+        `;
+        const tbody = table.querySelector('tbody')!;
+        for (const p of data.items) {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-gray-50';
+          const pnlClass = p.pnl !== null ? (p.pnl > 0 ? 'text-profit' : p.pnl < 0 ? 'text-loss' : '') : 'text-muted';
+          tr.innerHTML = `
+            <td class="px-4 py-3 font-mono font-semibold">${p.ticker}</td>
+            <td class="px-4 py-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${p.status === 'open' ? 'bg-blue-100 text-blue-800' : p.status === 'closed' ? 'bg-gray-100 text-gray-700' : 'bg-yellow-100 text-yellow-800'}">
+                ${p.status}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">${p.qty}</td>
+            <td class="px-4 py-3 text-right">${formatCurrency(p.entry_price)}</td>
+            <td class="px-4 py-3">${formatDateTime(p.entry_ts)}</td>
+            <td class="px-4 py-3 text-right ${pnlClass}">${p.pnl !== null ? formatCurrency(p.pnl) : '—'}</td>
+            <td class="px-4 py-3 text-right ${pnlClass}">${p.pnl_pct !== null ? formatPercent(p.pnl_pct) : '—'}</td>
+            <td class="px-4 py-3 text-muted text-xs">${p.close_reason ?? '—'}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        root.innerHTML = '';
+        root.appendChild(table);
+      } catch (e) {
+        root.innerHTML = `<div class="card text-sm text-loss">Error: ${(e as Error).message}</div>`;
+      }
+    }
+    load();
+  </script>
+</Layout>

@@ -1,0 +1,93 @@
+---
+/**
+ * /dashboard/agent — agent cost & health metrics.
+ */
+import Layout from '../../layouts/Layout.astro';
+import KPICard from '../../components/KPICard.astro';
+import Table from '../../components/Table.astro';
+import { formatCurrency, formatDateTime, formatNumber } from '../../lib/format';
+---
+<Layout title="Agente" active="agent">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Métricas del agente</h2>
+    <p class="text-sm text-muted mt-1">Coste de tokens, latencia y salud por sesión.</p>
+  </div>
+
+  <div id="agent-root" data-testid="agent-metrics">
+    <div class="card text-sm text-muted">Cargando métricas…</div>
+  </div>
+
+  <script>
+    import { api } from '../../lib/api';
+    import { formatCurrency, formatDateTime, formatNumber } from '../../lib/format';
+
+    async function load() {
+      const root = document.getElementById('agent-root');
+      if (!root) return;
+      try {
+        const metrics = await api.agentMetrics({ limit: 100 });
+        if (metrics.length === 0) {
+          root.innerHTML = '<div class="card text-sm text-muted">Sin métricas registradas.</div>';
+          return;
+        }
+        const totalCost = metrics.reduce((s, m) => s + m.cost_usd, 0);
+        const totalInput = metrics.reduce((s, m) => s + m.input_tokens, 0);
+        const totalOutput = metrics.reduce((s, m) => s + m.output_tokens, 0);
+        const totalErrors = metrics.reduce((s, m) => s + m.errors_count, 0);
+
+        root.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="card">
+              <span class="text-xs uppercase tracking-wide text-muted font-medium">Coste total</span>
+              <span class="text-3xl font-bold mt-2 block">${formatCurrency(totalCost)}</span>
+              <span class="text-sm text-muted mt-1 block">${metrics.length} sesiones</span>
+            </div>
+            <div class="card">
+              <span class="text-xs uppercase tracking-wide text-muted font-medium">Tokens input</span>
+              <span class="text-3xl font-bold mt-2 block">${formatNumber(totalInput, 0)}</span>
+            </div>
+            <div class="card">
+              <span class="text-xs uppercase tracking-wide text-muted font-medium">Tokens output</span>
+              <span class="text-3xl font-bold mt-2 block">${formatNumber(totalOutput, 0)}</span>
+            </div>
+            <div class="card">
+              <span class="text-xs uppercase tracking-wide text-muted font-medium">Errores</span>
+              <span class="text-3xl font-bold mt-2 block ${totalErrors > 0 ? 'text-loss' : 'text-profit'}">${totalErrors}</span>
+            </div>
+          </div>
+          <div class="card p-0 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Session</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Started</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Model</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">In tok</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Out tok</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Cost</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Errors</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                ${metrics.map(m => `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-mono">#${m.session_id}</td>
+                    <td class="px-4 py-3">${formatDateTime(m.started_at)}</td>
+                    <td class="px-4 py-3">${m.model}</td>
+                    <td class="px-4 py-3 text-right">${formatNumber(m.input_tokens, 0)}</td>
+                    <td class="px-4 py-3 text-right">${formatNumber(m.output_tokens, 0)}</td>
+                    <td class="px-4 py-3 text-right">${formatCurrency(m.cost_usd)}</td>
+                    <td class="px-4 py-3 text-right ${m.errors_count > 0 ? 'text-loss' : ''}">${m.errors_count}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        root.innerHTML = `<div class="card text-sm text-loss">Error: ${(e as Error).message}</div>`;
+      }
+    }
+    load();
+  </script>
+</Layout>

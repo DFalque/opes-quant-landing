@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/LoginForm.tsx';
+---
+<Layout title="Login" active={undefined}>
+  <div class="max-w-md mx-auto mt-12">
+    <div class="card">
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Iniciar sesión</h2>
+      <p class="text-sm text-muted mb-6">
+        Accede con tu usuario del dashboard.
+      </p>
+      <LoginForm client:load />
+    </div>
+  </div>
+</Layout>

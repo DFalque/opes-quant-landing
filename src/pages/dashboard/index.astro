@@ -1,0 +1,94 @@
+---
+/**
+ * /dashboard — top-level summary: portfolio KPIs + equity curve + open positions.
+ * Server-side fetches the data on build (Astro static). In dev, this re-fetches
+ * per request. Auth is enforced client-side (the API returns 401 if no auth).
+ */
+import Layout from '../../layouts/Layout.astro';
+import KPICard from '../../components/KPICard.astro';
+import Badge from '../../components/Badge.astro';
+import EquityCurveChart from '../../components/EquityCurveChart.tsx';
+import { formatCurrency, formatPercent } from '../../lib/format';
+import type { Position, PortfolioSummary } from '../../lib/types';
+
+// On a static build we can't read localStorage; the data will be re-fetched
+// client-side via the EquityCurveChart island. The KPIs and positions table
+// here are best-effort: if no auth, we show a loading state.
+let portfolio: PortfolioSummary | null = null;
+let openPositions: Position[] = [];
+let loadError: string | null = null;
+
+try {
+  // The Astro static build can't pass auth, so this will 401.
+  // In dev (Vite proxy) the cookie/localStorage isn't available either.
+  // Real solution: hydrate these via client-side fetch in a React island.
+  // For now we render empty states.
+  portfolio = null;
+  openPositions = [];
+} catch (e) {
+  loadError = e instanceof Error ? e.message : 'Error cargando datos';
+}
+---
+<Layout title="Dashboard" active="dashboard">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+    <p class="text-sm text-muted mt-1">Resumen de cartera, posiciones abiertas y agente.</p>
+  </div>
+
+  {loadError && (
+    <div class="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+      {loadError}
+    </div>
+  )}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <KPICard
+      label="Equity total"
+      value={portfolio ? formatCurrency(portfolio.total_equity) : '—'}
+      sub={portfolio ? `${portfolio.positions_count} posiciones abiertas` : 'Cargando…'}
+    />
+    <KPICard
+      label="Cash"
+      value={portfolio ? formatCurrency(portfolio.cash_balance) : '—'}
+      sub="Balance en cuenta"
+    />
+    <KPICard
+      label="P&L realizado"
+      value={portfolio ? formatCurrency(portfolio.realized_pnl_total) : '—'}
+      trend={portfolio ? (portfolio.realized_pnl_total >= 0 ? 'up' : 'down') : 'neutral'}
+      trendValue={portfolio ? formatPercent((portfolio.realized_pnl_total / Math.max(1, portfolio.cash_balance)) * 100) : ''}
+    />
+    <KPICard
+      label="P&L no realizado"
+      value={portfolio ? formatCurrency(portfolio.unrealized_pnl_total) : '—'}
+      sub="Necesita feed de precios live (fase futura)"
+    />
+  </div>
+
+  <div class="mb-6">
+    <EquityCurveChart client:load range="3m" />
+  </div>
+
+  <div class="card">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Posiciones abiertas</h3>
+    {openPositions.length === 0 ? (
+      <p class="text-sm text-muted">
+        Sin posiciones abiertas. Ejecuta el agente o usa el endpoint
+        <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">POST /api/positions</code>
+        (fase futura) para crear una.
+      </p>
+    ) : (
+      <ul class="divide-y divide-gray-100">
+        {openPositions.map((p) => (
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <span class="font-mono font-semibold">{p.ticker}</span>
+              <span class="text-sm text-muted ml-3">{p.qty} @ {formatCurrency(p.entry_price)}</span>
+            </div>
+            <Badge text="open" variant="info" />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,926 @@
+---
+/**
+ * /dashboard/backtest — backtest mode UI (ADR-0012).
+ *
+ * Improvements (Fase 3.1):
+ *   - Step explanation with visual example + estimated dates
+ *   - "Quick test" button (1 iteration) for cheap validation
+ *   - Human-readable dates (e.g. "29 Apr 2026") with relative time
+ *   - P&L explanation in the report
+ *   - Point-by-point reasoning breakdown
+ *   - Comparison view (best/worst iteration highlights)
+ */
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Backtest" active="backtest">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Modo Backtest</h2>
+    <p class="text-sm text-muted mt-1">
+      Validar si el sub-agente-bolsa tiene poder predictivo analizando
+      predicciones sobre datos históricos vs resultados reales.
+    </p>
+  </div>
+
+  <div id="backtest-root">
+    <!-- ¿Qué hace? -->
+    <section class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-blue-900 mb-3">¿Qué hace el backtest?</h3>
+      <ol class="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+        <li>Eliges un <strong>ticker</strong> y un <strong>periodo</strong> (ventana hacia atrás: 3m, 6m, 1y, 2y).</li>
+        <li>Eliges un <strong>step</strong> = cada cuántos días tomas una fecha para analizar (1d, 1w, 1m...).</li>
+        <li>El backtest toma <strong>N fechas</strong> = window ÷ step (ej: 90 ÷ 7 ≈ 13 fechas).</li>
+        <li>Para cada fecha, lanza el <strong>sub-agente-bolsa como si fuera ese día</strong> (solo ve datos anteriores).</li>
+        <li>El sub-agente produce una <strong>predicción</strong>: BUY/SELL con entry, stop, target.</li>
+        <li>Después, coge los <strong>datos reales posteriores</strong> a esa fecha (siguientes step_days).</li>
+        <li>Compara: ¿tocó target? ¿tocó stop? ¿se quedó a medias? ¿NO ACTION?</li>
+        <li>Agrega: win rate, P&L total, distribución, coste, tiempo de ejecución.</li>
+      </ol>
+      <p class="text-xs text-blue-700 mt-3">
+        <strong>Importante:</strong> el periodo es determinista (no aleatorio). Dos runs con los mismos
+        params dan los mismos resultados. El sub-agente NO envía órdenes — es simulación.
+      </p>
+
+      <details class="mt-4">
+        <summary class="text-sm font-medium text-blue-800 cursor-pointer hover:text-blue-900">🔒 ¿Cómo sé que el sub-agente NO ve datos del futuro? (verificación anti-trampa)</summary>
+        <div class="mt-2 text-xs text-blue-700 space-y-1 pl-4">
+          <p><strong>El SKILL de sub-agente-bolsa tiene instrucciones explícitas:</strong></p>
+          <ol class="list-decimal list-inside space-y-1 pl-4">
+            <li>Al pedir datos a Alpaca, pasar <code class="bg-blue-100 px-1 rounded">end=as_of</code> (no "now").</li>
+            <li>Al pedir noticias a Alpaca, filtrar con <code class="bg-blue-100 px-1 rounded">published_at &lt;= as_of</code>.</li>
+            <li>NO invocar Engram con scope "últimos 7 días" (incluiría futuro).</li>
+            <li>Propagar <code class="bg-blue-100 px-1 rounded">as_of</code> al AgentContext de los 7 stages.</li>
+          </ol>
+          <p class="mt-2"><strong>El backtest-runner usa rangos de fechas disjuntos:</strong></p>
+          <ol class="list-decimal list-inside space-y-1 pl-4">
+            <li><strong>Sub-agente:</strong> recibe barras desde ~1 año antes hasta <code class="bg-blue-100 px-1 rounded">as_of</code>.</li>
+            <li><strong>Validación:</strong> recibe barras desde <code class="bg-blue-100 px-1 rounded">as_of</code> hasta <code class="bg-blue-100 px-1 rounded">as_of + step_days</code>.</li>
+            <li>Los dos rangos no se solapan → el sub-agente no vio el resultado.</li>
+          </ol>
+          <p class="mt-2"><strong>El reporte del run incluye un "Data Integrity Check"</strong> que verifica automáticamente que los rangos son disjuntos. Si ves ✗ rojo, hay un problema.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- Form -->
+    <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Nuevo Backtest</h3>
+      <form id="backtest-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ticker</label>
+          <select name="ticker" id="ticker" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="SPY">SPY</option>
+            <option value="QQQ">QQQ</option>
+            <option value="AAPL" selected>AAPL</option>
+            <option value="MSFT">MSFT</option>
+            <option value="NVDA">NVDA</option>
+            <option value="RKLB">RKLB</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Cada cuántos días tomas una fecha para analizar.">Step <span class="text-gray-400 text-xs">(cada cuánto)</span></label>
+          <select name="step_days" id="step_days" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="1">1 día</option>
+            <option value="7" selected>1 semana</option>
+            <option value="30">1 mes</option>
+            <option value="90">3 meses</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 año</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Cuánto tiempo hacia atrás miras desde hoy.">Window <span class="text-gray-400 text-xs">(hacia atrás)</span></label>
+          <select name="window_days" id="window_days" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="90" selected>3 meses</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 año</option>
+            <option value="730">2 años</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Tope de seguridad para no gastar de más. Quick test usa 1.">Max Iterations</label>
+          <input type="number" name="max_iterations" id="max_iterations" value="12" min="1" max="200"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <button type="button" id="quick-test-btn"
+                  class="w-full bg-gray-100 text-gray-800 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50"
+                  title="Lanza 1 sola iteración para validar el setup antes de un run completo. Coste ~$0.01.">
+            🧪 Quick test (1 iter)
+          </button>
+          <button type="submit" id="run-btn"
+                  class="w-full bg-blue-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            Run Backtest completo
+          </button>
+        </div>
+      </form>
+
+      <!-- Estimate with dates -->
+      <div id="estimate-display" class="mt-4 text-sm text-gray-600 hidden">
+        <div class="flex items-center gap-4 flex-wrap">
+          <span><strong id="estimate-iters">—</strong> iteraciones, <strong id="estimate-cost">—</strong> coste estimado</span>
+          <span class="text-xs text-gray-500">(~<span id="estimate-per-iter">—</span> por iteración)</span>
+        </div>
+        <div class="mt-2">
+          <div class="text-xs text-gray-500 mb-1">Fechas que se analizarán (de más reciente a más antigua):</div>
+          <div id="estimate-dates" class="flex flex-wrap gap-1"></div>
+        </div>
+      </div>
+      <div id="form-error" class="mt-4 text-sm text-red-600 hidden"></div>
+    </section>
+
+    <!-- Runs list -->
+    <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Runs Recientes</h3>
+      <div id="runs-table" data-testid="runs-table">
+        <p class="text-sm text-muted">Cargando...</p>
+      </div>
+    </section>
+
+    <!-- Run detail -->
+    <section id="run-detail" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalle del Run</h3>
+      <div id="run-detail-content"></div>
+    </section>
+  </div>
+
+  <script>
+    // --- Helpers ---
+    function getAuthHeader(): Record<string, string> {
+      const u = (document.querySelector('meta[name="auth-username"]') as HTMLMetaElement)?.content;
+      const p = (document.querySelector('meta[name="auth-password"]') as HTMLMetaElement)?.content;
+      if (!u || !p) return {};
+      return { 'Authorization': 'Basic ' + btoa(u + ':' + p) };
+    }
+
+    async function fetchJSON<T>(url: string, opts: RequestInit = {}): Promise<T> {
+      const res = await fetch(url, { ...opts, headers: { ...getAuthHeader(), 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(detail.detail || res.statusText);
+      }
+      return res.json();
+    }
+
+    // Format a date string as "29 Apr 2026" (Spanish locale).
+    function formatDate(iso: string | undefined | null): string {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso + 'T00:00:00Z');
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch { return iso; }
+    }
+
+    // Format a date string as "hace 3 meses" / "hace 2 semanas" / etc.
+    function formatRelative(iso: string | undefined | null): string {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso + 'T00:00:00Z');
+        if (isNaN(d.getTime())) return '';
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return 'hoy';
+        if (diffDays === 1) return 'ayer';
+        if (diffDays < 7) return `hace ${diffDays} días`;
+        if (diffDays < 30) return `hace ${Math.floor(diffDays / 7)} sem`;
+        if (diffDays < 365) return `hace ${Math.floor(diffDays / 30)} meses`;
+        return `hace ${Math.floor(diffDays / 365)} años`;
+      } catch { return ''; }
+    }
+
+    // Format a datetime string as "29 Apr 2026, 14:30 UTC".
+    function formatDateTime(iso: string | undefined | null): string {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleString('es-ES', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short',
+        });
+      } catch { return iso; }
+    }
+
+    function formatDuration(seconds: number | null | undefined): string {
+      if (seconds === null || seconds === undefined) return '—';
+      if (seconds < 60) return seconds.toFixed(1) + 's';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.floor(seconds % 60) + 's';
+      return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+    }
+
+    function formatNumber(n: number | null | undefined, decimals: number = 2): string {
+      if (n === null || n === undefined) return '—';
+      return n.toLocaleString('en-US', { maximumFractionDigits: decimals });
+    }
+
+    function formatPercent(n: number | null | undefined, decimals: number = 1): string {
+      if (n === null || n === undefined) return '—';
+      return (n * 100).toFixed(decimals) + '%';
+    }
+
+    function formatUsd(n: number | null | undefined, decimals: number = 4): string {
+      if (n === null || n === undefined) return '—';
+      return '$' + n.toFixed(decimals);
+    }
+
+    function statusToBadge(status: string): string {
+      const colors: Record<string, string> = {
+        queued: 'bg-gray-100 text-gray-800',
+        running: 'bg-blue-100 text-blue-800',
+        success: 'bg-green-100 text-green-800',
+        failed: 'bg-red-100 text-red-800',
+        aborted: 'bg-yellow-100 text-yellow-800',
+      };
+      return `<span class="inline-flex px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}">${status}</span>`;
+    }
+
+    // Parse the sub-agent's reasoning (pipe-separated string) into bullet points.
+    function parseReasoning(reasoning: string | undefined | null): Array<{label: string, detail: string}> {
+      if (!reasoning) return [];
+      const parts = reasoning.split('|').map(p => p.trim()).filter(Boolean);
+      return parts.map(p => {
+        // Try to split "Label: detail" or "Label (detail)".
+        const colonIdx = p.indexOf(':');
+        const parenIdx = p.indexOf('(');
+        let label: string;
+        let detail: string;
+        if (colonIdx > 0 && colonIdx < 40) {
+          label = p.substring(0, colonIdx).trim();
+          detail = p.substring(colonIdx + 1).trim();
+        } else if (parenIdx > 0 && parenIdx < 40) {
+          label = p.substring(0, parenIdx).trim();
+          detail = p.substring(parenIdx).trim();
+        } else {
+          label = p;
+          detail = '';
+        }
+        return { label, detail };
+      });
+    }
+
+    // --- Elements ---
+    const form = document.getElementById('backtest-form') as HTMLFormElement;
+    const formError = document.getElementById('form-error') as HTMLDivElement;
+    const estimateDisplay = document.getElementById('estimate-display') as HTMLDivElement;
+    const estimateIters = document.getElementById('estimate-iters') as HTMLSpanElement;
+    const estimateCost = document.getElementById('estimate-cost') as HTMLSpanElement;
+    const estimatePerIter = document.getElementById('estimate-per-iter') as HTMLSpanElement;
+    const estimateDates = document.getElementById('estimate-dates') as HTMLDivElement;
+    const runsTable = document.getElementById('runs-table') as HTMLDivElement;
+    const runDetail = document.getElementById('run-detail') as HTMLElement;
+    const runDetailContent = document.getElementById('run-detail-content') as HTMLDivElement;
+    const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
+    const quickTestBtn = document.getElementById('quick-test-btn') as HTMLButtonElement;
+
+    async function refreshEstimate() {
+      const ticker = (document.getElementById('ticker') as HTMLSelectElement).value;
+      const stepDays = parseInt((document.getElementById('step_days') as HTMLSelectElement).value, 10);
+      const windowDays = parseInt((document.getElementById('window_days') as HTMLSelectElement).value, 10);
+      const maxIter = parseInt((document.getElementById('max_iterations') as HTMLInputElement).value, 10);
+      try {
+        const est = await fetchJSON<any>('/api/backtest/estimate', {
+          method: 'POST',
+          body: JSON.stringify({ ticker, step_days: stepDays, window_days: windowDays, max_iterations: maxIter }),
+        });
+        estimateDisplay.classList.remove('hidden');
+        estimateIters.textContent = String(est.iterations_total);
+        const cost = est.cost_usd_estimated;
+        estimateCost.textContent = '$' + cost.toFixed(2);
+        estimatePerIter.textContent = '$' + (cost / Math.max(est.iterations_total, 1)).toFixed(3);
+        // Render dates as a list of "29 Apr 2026 (hace 3 meses)" pills.
+        if (est.dates && est.dates.length > 0) {
+          estimateDates.innerHTML = est.dates.map((d: string) => {
+            return `<span class="inline-flex flex-col items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 border border-blue-200">
+              <span class="font-medium">${formatDate(d)}</span>
+              <span class="text-blue-600 text-[10px]">${formatRelative(d)}</span>
+            </span>`;
+          }).join('<span class="text-gray-400">→</span>');
+        } else {
+          estimateDates.innerHTML = '<span class="text-gray-400 text-xs">—</span>';
+        }
+      } catch (e) {
+        estimateDisplay.classList.add('hidden');
+      }
+    }
+
+    async function submitRun(quickTest: boolean) {
+      formError.classList.add('hidden');
+      runBtn.disabled = true;
+      quickTestBtn.disabled = true;
+      try {
+        const ticker = (document.getElementById('ticker') as HTMLSelectElement).value;
+        const stepDays = parseInt((document.getElementById('step_days') as HTMLSelectElement).value, 10);
+        const windowDays = parseInt((document.getElementById('window_days') as HTMLSelectElement).value, 10);
+        const maxIter = quickTest ? 1 : parseInt((document.getElementById('max_iterations') as HTMLInputElement).value, 10);
+        const run = await fetchJSON<any>('/api/backtest/runs', {
+          method: 'POST',
+          body: JSON.stringify({ ticker, step_days: stepDays, window_days: windowDays, max_iterations: maxIter }),
+        });
+        await loadRuns();
+        loadDetail(run.id);
+      } catch (err: any) {
+        formError.textContent = err.message;
+        formError.classList.remove('hidden');
+      } finally {
+        runBtn.disabled = false;
+        quickTestBtn.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); submitRun(false); });
+    quickTestBtn.addEventListener('click', () => { submitRun(true); });
+
+    async function abortRun(runId: string) {
+      if (!confirm('¿Parar este backtest? La iteración actual terminará y las restantes no se ejecutarán.')) return;
+      try {
+        const r = await fetchJSON<any>(`/api/backtest/runs/${runId}/abort`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: 'user_aborted_from_dashboard' }),
+        });
+        await loadRuns();
+        if (r.id) loadDetail(r.id);
+      } catch (e: any) {
+        alert('Error parando run: ' + e.message);
+      }
+    }
+
+    async function loadRuns() {
+      try {
+        const runs = await fetchJSON<any[]>('/api/backtest/runs');
+        if (runs.length === 0) {
+          runsTable.innerHTML = '<p class="text-sm text-muted">No hay runs todavía. Lanza uno con el form de arriba.</p>';
+          return;
+        }
+        let html = '<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ticker</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Periodo</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Iter</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Win Rate</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">P&L</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dur</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Inicio</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>';
+        html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+        for (const r of runs) {
+          const summary = r.summary_json ? JSON.parse(r.summary_json) : {};
+          const winRate = summary.win_rate !== undefined ? (summary.win_rate * 100).toFixed(0) + '%' : '—';
+          const pnl = summary.pnl_total !== undefined ? '$' + summary.pnl_total.toFixed(2) : '—';
+          const dur = formatDuration(r.duration_seconds);
+          const cost = formatUsd(r.cost_usd_actual);
+          const statusBadge = statusToBadge(r.status);
+          const canAbort = (r.status === 'queued' || r.status === 'running');
+          const abortBtn = canAbort
+            ? `<button class="text-red-600 hover:text-red-800 text-xs font-medium" onclick="event.stopPropagation(); window.abortBacktest('${r.id}')">⏹ Parar</button>`
+            : '';
+          html += `<tr class="hover:bg-gray-50 cursor-pointer" data-run-id="${r.id}">`;
+          html += `<td class="px-3 py-2 text-sm font-medium text-gray-900">${r.ticker}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${formatDate(summary.as_of_start)} → ${formatDate(summary.as_of_end)}</td>`;
+          html += `<td class="px-3 py-2 text-sm">${statusBadge}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${r.progress_done} / ${r.progress_total}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${winRate}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${pnl}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${dur}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${cost}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-500">${formatRelative(r.started_at?.substring(0, 10))}</td>`;
+          html += `<td class="px-3 py-2 text-sm">${abortBtn}</td>`;
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        runsTable.innerHTML = html;
+        for (const row of runsTable.querySelectorAll('tr[data-run-id]')) {
+          row.addEventListener('click', () => loadDetail(row.getAttribute('data-run-id')!));
+        }
+      } catch (e: any) {
+        runsTable.innerHTML = `<p class="text-sm text-red-600">Error cargando runs: ${e.message}</p>`;
+      }
+    }
+
+    (window as any).abortBacktest = abortRun;
+
+    async function loadDetail(runId: string) {
+      try {
+        const detail = await fetchJSON<any>(`/api/backtest/runs/${runId}`);
+        const summary = detail.summary_json ? JSON.parse(detail.summary_json) : {};
+        let html = '';
+
+        // ===== Status + actions =====
+        const canAbort = (detail.status === 'queued' || detail.status === 'running');
+        html += '<div class="flex items-center justify-between mb-6">';
+        html += '<div class="flex items-center gap-3">';
+        html += statusToBadge(detail.status);
+        if (summary.wins !== undefined) {
+          html += '<span class="text-sm text-gray-500">' + (summary.wins + summary.losses + summary.timeouts) + ' evaluadas / ' + (summary.skipped || 0) + ' skipped</span>';
+        }
+        html += '</div>';
+        if (canAbort) {
+          html += '<button id="abort-btn" class="bg-red-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-red-700">⏹ Parar Backtest</button>';
+        }
+        html += '</div>';
+
+        // ===== 1. ¿QUÉ SE ANALIZÓ? (periodo) =====
+        html += '<div class="mb-6 p-5 bg-blue-50 border border-blue-200 rounded-lg">';
+        html += '<h4 class="font-semibold text-blue-900 mb-2">📅 ¿Qué se analizó?</h4>';
+        html += '<p class="text-sm text-blue-800 mb-3">';
+        html += 'Se cogieron <strong>' + (detail.progress_total || 0) + ' fechas</strong> de los últimos ';
+        html += '<strong>' + (detail.window_days) + ' días</strong>, separadas por ';
+        html += '<strong>' + (detail.step_days) + ' días</strong> cada una (cada cuánto se toma una fecha).';
+        html += '</p>';
+        if (summary.as_of_dates && summary.as_of_dates.length > 0) {
+          html += '<div class="text-xs text-blue-700 mb-2">Línea temporal de las fechas evaluadas (de más antigua a más reciente):</div>';
+          html += '<div class="flex flex-wrap items-center gap-1">';
+          for (let i = 0; i < summary.as_of_dates.length; i++) {
+            const d = summary.as_of_dates[i];
+            html += `<div class="flex flex-col items-center px-2 py-1 rounded bg-white border border-blue-200 text-xs">
+              <span class="text-[10px] text-gray-400">iter ${i}</span>
+              <span class="font-medium text-gray-800">${formatDate(d)}</span>
+              <span class="text-blue-600 text-[10px]">${formatRelative(d)}</span>
+            </div>`;
+            if (i < summary.as_of_dates.length - 1) {
+              html += '<span class="text-blue-400 text-xs">+'+detail.step_days+'d →</span>';
+            }
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+
+        // ===== 2. RESULTADOS (KPIs) =====
+        const wins = summary.wins || 0;
+        const losses = summary.losses || 0;
+        const timeouts = summary.timeouts || 0;
+        const skipped = summary.skipped || 0;
+        const errors = summary.errors || 0;
+        const evaluated = (wins + losses + timeouts);
+        const pnlTotal = summary.pnl_total || 0;
+        const winRate = summary.win_rate || 0;
+        const pnlPerEval = evaluated > 0 ? pnlTotal / evaluated : 0;
+
+        html += '<div class="mb-6 p-5 bg-white border border-gray-200 rounded-lg">';
+        html += '<h4 class="font-semibold text-gray-900 mb-3">📊 Resultados agregados</h4>';
+        // P&L explanation
+        html += '<div class="text-xs text-gray-500 mb-3 p-2 bg-gray-50 rounded">';
+        html += '<strong>P&L Total</strong> = suma de (precio_salida - entry) en todas las iteraciones evaluadas. ';
+        html += 'Si la iteración es <em>timeout</em> (target no tocado, stop no tocado), se vende al último cierre disponible. ';
+        html += 'Si la iteración es <em>skipped</em> (sub-agente dijo NO ACTION), no hay P&L. ';
+        html += '<strong>Win Rate</strong> = target_hit / (target_hit + stop_hit + timeout).';
+        html += '</div>';
+        // KPI grid
+        html += '<div class="grid grid-cols-2 md:grid-cols-5 gap-3">';
+        const pnlColor = pnlTotal > 0 ? 'text-green-600' : pnlTotal < 0 ? 'text-red-600' : 'text-gray-900';
+        html += '<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">P&L Total</div><div class="text-2xl font-bold ' + pnlColor + '">' + formatUsd(pnlTotal, 2) + '</div><div class="text-xs text-gray-500 mt-1">' + (evaluated > 0 ? '$' + pnlPerEval.toFixed(2) + ' / iter' : '—') + '</div></div>';
+        html += '<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Win Rate</div><div class="text-2xl font-bold text-gray-900">' + formatPercent(winRate, 1) + '</div><div class="text-xs text-gray-500 mt-1">' + wins + ' de ' + evaluated + '</div></div>';
+        html += '<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">P&L medio/eval</div><div class="text-2xl font-bold ' + pnlColor + '">' + formatUsd(pnlPerEval, 2) + '</div></div>';
+        html += '<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Evaluadas</div><div class="text-2xl font-bold text-gray-900">' + evaluated + '</div><div class="text-xs text-gray-500 mt-1">' + skipped + ' skipped</div></div>';
+        html += '<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Iter totales</div><div class="text-2xl font-bold text-gray-900">' + (detail.progress_done || 0) + '/' + (detail.progress_total || 0) + '</div></div>';
+        html += '</div>';
+        // Distribution
+        html += '<div class="mt-3 flex flex-wrap gap-2">';
+        if (wins > 0) html += '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">✓ Target hit: ' + wins + '</span>';
+        if (losses > 0) html += '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">✗ Stop hit: ' + losses + '</span>';
+        if (timeouts > 0) html += '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">⏱ Timeout: ' + timeouts + '</span>';
+        if (skipped > 0) html += '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">⊘ NO ACTION: ' + skipped + '</span>';
+        if (errors > 0) html += '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">⚠ Error: ' + errors + '</span>';
+        html += '</div>';
+        // Equity curve
+        const equity = summary.equity_curve || [];
+        if (equity.length > 0) {
+          const equityStart = summary.equity_start || 100000;
+          const pnlTotal = summary.pnl_total || 0;
+          html += '<div class="mt-4">';
+          html += '<div class="text-sm text-gray-500 mb-2">Equity curve (cartera simulada, empieza en $' + formatNumber(equityStart, 0) + '):</div>';
+          if (pnlTotal === 0) {
+            html += '<div class="text-xs text-gray-500 italic p-3 bg-gray-50 rounded">P&L total = $0 (todos los trades fueron skipped o no hubo P&L). Sin equity curve que mostrar.</div>';
+          } else {
+            // Build a simple HTML table-based chart to avoid flex/height CSS issues.
+            // Each bar is a fixed-width div with explicit height in pixels.
+            const minEq = Math.min(...equity);
+            const maxEq = Math.max(...equity);
+            const range = maxEq - minEq || 1;
+            const chartHeight = 80; // px
+            html += '<div class="flex items-end gap-1 bg-gray-50 p-3 rounded" style="height: ' + (chartHeight + 24) + 'px;">';
+            for (let i = 0; i < equity.length; i++) {
+              const v = equity[i];
+              const offset = v - equityStart;
+              // bar height: scale offset to chart height. Max bar is half the chart.
+              const h = range > 0 ? Math.max(2, (Math.abs(offset) / range) * (chartHeight / 2)) : 2;
+              const isPositive = offset >= 0;
+              const color = isPositive ? 'bg-green-500' : 'bg-red-500';
+              const sign = isPositive ? '+' : '';
+              html += '<div class="flex-1 ' + color + ' rounded-t" style="height: ' + h.toFixed(1) + 'px; min-height: 2px;" title="Iter ' + i + ': $' + v.toFixed(2) + ' (' + sign + offset.toFixed(2) + ')"></div>';
+            }
+            html += '</div>';
+            // Add x-axis labels below the chart.
+            html += '<div class="flex gap-1 mt-1 text-[10px] text-gray-400">';
+            for (let i = 0; i < equity.length; i++) {
+              html += '<div class="flex-1 text-center">i' + i + '</div>';
+            }
+            html += '</div>';
+            html += '<div class="mt-2 text-xs text-gray-600">Final: <span class="font-medium ' + (pnlTotal > 0 ? 'text-green-700' : pnlTotal < 0 ? 'text-red-700' : 'text-gray-700') + '">$' + (equityStart + pnlTotal).toFixed(2) + '</span> (' + (pnlTotal > 0 ? '+' : '') + '$' + pnlTotal.toFixed(2) + ')</div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+
+        // ===== 3. EJECUCIÓN =====
+        const wallClock = summary.wall_clock_duration_seconds || detail.duration_seconds;
+        const totalSubagent = summary.total_subagent_seconds || 0;
+        html += '<div class="mb-6 p-5 bg-white border border-gray-200 rounded-lg">';
+        html += '<h4 class="font-semibold text-gray-900 mb-3">⏱️ Tiempo de ejecución</h4>';
+        html += '<dl class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">';
+        html += '<div><dt class="text-gray-500">Inicio</dt><dd>' + formatDateTime(detail.started_at) + '</dd></div>';
+        if (detail.ended_at) html += '<div><dt class="text-gray-500">Fin</dt><dd>' + formatDateTime(detail.ended_at) + '</dd></div>';
+        html += '<div><dt class="text-gray-500">Wall clock</dt><dd class="font-medium">' + formatDuration(wallClock) + '</dd></div>';
+        if (totalSubagent > 0) html += '<div><dt class="text-gray-500">En sub-agentes</dt><dd>' + formatDuration(totalSubagent) + ' (' + Math.round(totalSubagent / (wallClock || 1) * 100) + '%)</dd></div>';
+        html += '</dl>';
+        if (detail.status === 'running' && detail.started_at) {
+          const startMs = new Date(detail.started_at).getTime();
+          const elapsedSec = (Date.now() - startMs) / 1000;
+          html += '<div class="mt-3 p-3 bg-blue-50 rounded">';
+          html += '<div class="text-sm text-blue-800">⏳ En ejecución... ' + formatDuration(elapsedSec) + ' elapsed</div>';
+          html += '<div class="mt-1 w-full bg-blue-200 rounded-full h-2">';
+          const pct = detail.progress_total > 0 ? (detail.progress_done / detail.progress_total * 100) : 0;
+          html += '<div class="bg-blue-600 h-2 rounded-full transition-all" style="width: ' + pct + '%"></div>';
+          html += '</div>';
+          html += '<div class="text-xs text-blue-600 mt-1">' + detail.progress_done + ' / ' + detail.progress_total + ' iteraciones (' + pct.toFixed(0) + '%)</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+
+        // ===== 4. COSTE =====
+        const totalCost = summary.total_cost_usd || detail.cost_usd_actual;
+        const totalInTokens = summary.total_input_tokens_est;
+        const totalOutTokens = summary.total_output_tokens_est;
+        const totalInChars = summary.total_input_chars;
+        const totalOutChars = summary.total_output_chars;
+        html += '<div class="mb-6 p-5 bg-white border border-gray-200 rounded-lg">';
+        html += '<h4 class="font-semibold text-gray-900 mb-3">💰 Coste del run</h4>';
+        html += '<dl class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">';
+        html += '<div><dt class="text-gray-500">Coste total (USD)</dt><dd class="font-medium text-lg">' + formatUsd(totalCost, 4) + '</dd></div>';
+        if (totalInTokens !== undefined && totalInTokens !== null) {
+          html += '<div><dt class="text-gray-500">Input tokens (est.)</dt><dd>' + formatNumber(totalInTokens, 0) + '</dd></div>';
+        }
+        if (totalOutTokens !== undefined && totalOutTokens !== null) {
+          html += '<div><dt class="text-gray-500">Output tokens (est.)</dt><dd>' + formatNumber(totalOutTokens, 0) + '</dd></div>';
+        }
+        if (totalInChars !== undefined && totalInChars !== null) {
+          html += '<div><dt class="text-gray-500">Input chars</dt><dd>' + formatNumber(totalInChars, 0) + '</dd></div>';
+        }
+        if (totalOutChars !== undefined && totalOutChars !== null) {
+          html += '<div><dt class="text-gray-500">Output chars</dt><dd>' + formatNumber(totalOutChars, 0) + '</dd></div>';
+        }
+        html += '</dl>';
+        html += '<p class="text-xs text-gray-500 mt-2">Tokens estimados vía heurística: output_tokens = chars/4, input_tokens = output × 8. Coste desde pricing del modelo.</p>';
+        html += '</div>';
+
+        // ===== 4b. DATA INTEGRITY CHECK (no leakage) =====
+        if (detail.iterations && detail.iterations.length > 0) {
+          const iterData = detail.iterations.map((it: any) => {
+            const d = it.outcome_detail_json ? JSON.parse(it.outcome_detail_json || '{}') : {};
+            return { as_of: it.as_of, as_of_window_end: d.as_of_window_end, decision: it.decision, outcome: it.outcome };
+          });
+          // Check no-overlap: the last bar seen by the sub-agent must be <= as_of, and outcome bars start at as_of.
+          // We can't know the exact last bar without reading the filesystem, but we have as_of_window_end.
+          // If as_of_window_end is a date >= as_of, that's the window of data the sub-agent had.
+          html += '<div class="mb-6 p-5 bg-green-50 border border-green-200 rounded-lg">';
+          html += '<h4 class="font-semibold text-green-900 mb-2">🔒 Data Integrity Check (no leakage)</h4>';
+          html += '<p class="text-sm text-green-800 mb-3">Para confirmar que el sub-agente NO vio datos del futuro, verificamos que los rangos de fechas son estrictamente disjuntos (el sub-agente debe ver datos hasta <code class="bg-green-100 px-1 rounded">as_of</code> exclusivo):</p>';
+          html += '<div class="overflow-x-auto"><table class="min-w-full text-sm">';
+          html += '<thead><tr class="text-xs text-gray-600"><th class="px-2 py-1 text-left">Iter</th><th class="px-2 py-1 text-left">Sub-agente vio hasta</th><th class="px-2 py-1 text-left">Outcome empieza en</th><th class="px-2 py-1 text-left">¿Solapamiento?</th></tr></thead>';
+          html += '<tbody class="bg-white">';
+          for (let i = 0; i < iterData.length; i++) {
+            const it = iterData[i];
+            // Normalize: strip the time portion so we compare dates only.
+            const sawUntil = it.as_of_window_end ? it.as_of_window_end.split('T')[0] : it.as_of;
+            const outcomeStart = it.as_of;
+            const sawDate = new Date(sawUntil + 'T00:00:00Z');
+            const outDate = new Date(outcomeStart + 'T00:00:00Z');
+            const dayDiff = Math.floor((sawDate.getTime() - outDate.getTime()) / (1000*60*60*24));
+            // STRICT: sub-agent must see data strictly BEFORE the outcome window starts.
+            // dayDiff < 0 means sawUntil is BEFORE outcomeStart (good, no overlap).
+            // dayDiff = 0 means sawUntil == outcomeStart (borderline, 1 day of overlap).
+            // dayDiff > 0 means sawUntil is AFTER outcomeStart (overlap, TRAP).
+            const ok = dayDiff < 0;
+            const color = ok ? 'text-green-700' : dayDiff === 0 ? 'text-yellow-700' : 'text-red-700';
+            const icon = ok ? '✓' : dayDiff === 0 ? '⚠' : '✗';
+            const note = ok ? 'OK (sin solapamiento)' : dayDiff === 0 ? '⚠️ Toca el borde (1 día compartido)' : '✗ SOLAPAMIENTO (' + dayDiff + ' días)';
+            html += '<tr class="border-t border-gray-200">';
+            html += '<td class="px-2 py-1">Iter ' + i + '</td>';
+            html += '<td class="px-2 py-1">' + formatDate(sawUntil) + ' <span class="text-xs text-gray-500">(datos del sub-agente)</span></td>';
+            html += '<td class="px-2 py-1">' + formatDate(outcomeStart) + ' <span class="text-xs text-gray-500">(datos de validación)</span></td>';
+            html += '<td class="px-2 py-1 ' + color + ' font-medium">' + icon + ' ' + note + '</td>';
+            html += '</tr>';
+          }
+          html += '</tbody></table></div>';
+          html += '<p class="text-xs text-green-700 mt-3">✓ El sub-agente solo vio datos hasta su fecha de análisis (exclusivo). Los datos de outcome empiezan al día siguiente. Sin solapamiento = sin trampa.</p>';
+          html += '</div>';
+        }
+
+        // ===== 5. ITERACIONES: PREDICCIÓN vs REALIDAD =====
+        if (detail.iterations && detail.iterations.length > 0) {
+          html += '<h4 class="font-semibold text-gray-900 mb-3">🔍 Iteraciones: predicción del sub-agente vs resultado real</h4>';
+          html += '<p class="text-xs text-gray-500 mb-3">Cada fila muestra: fecha del análisis → predicción (BUY/SELL con entry, stop, target) → qué pasó en los ' + detail.step_days + ' días siguientes (outcome, P&L).</p>';
+
+          // Find best/worst iteration (by P&L).
+          let bestIdx = -1, worstIdx = -1, bestPnl = -Infinity, worstPnl = Infinity;
+          for (let i = 0; i < detail.iterations.length; i++) {
+            const it = detail.iterations[i];
+            if (it.pnl !== null && it.pnl !== undefined) {
+              if (it.pnl > bestPnl) { bestPnl = it.pnl; bestIdx = i; }
+              if (it.pnl < worstPnl) { worstPnl = it.pnl; worstIdx = i; }
+            }
+          }
+
+          for (let i = 0; i < detail.iterations.length; i++) {
+            const it = detail.iterations[i];
+            const detail_json = it.outcome_detail_json ? JSON.parse(it.outcome_detail_json || '{}') : {};
+            const asOfFmt = formatDate(it.as_of);
+            const asOfRel = formatRelative(it.as_of);
+            const windowEnd = detail_json.as_of_window_end ? formatDate(detail_json.as_of_window_end) : '—';
+            const entry = it.entry_price !== null ? '$' + it.entry_price.toFixed(2) : '—';
+            const stop = it.stop_loss !== null ? '$' + it.stop_loss.toFixed(2) : '—';
+            const target = it.target_price !== null ? '$' + it.target_price.toFixed(2) : '—';
+            const pnlVal = it.pnl;
+            const pnlDisplay = pnlVal !== null ? '<span class="font-bold ' + (pnlVal > 0 ? 'text-green-600' : pnlVal < 0 ? 'text-red-600' : 'text-gray-500') + '">$' + pnlVal.toFixed(2) + '</span>' : '<span class="text-gray-400">—</span>';
+            const pnlPctDisplay = it.pnl_pct !== null ? '<span class="' + (it.pnl_pct > 0 ? 'text-green-600' : it.pnl_pct < 0 ? 'text-red-600' : 'text-gray-500') + '">' + (it.pnl_pct > 0 ? '+' : '') + it.pnl_pct.toFixed(2) + '%</span>' : '<span class="text-gray-400">—</span>';
+            const tokensTotal = detail_json.tokens_total;
+            const tokensDisplay = tokensTotal ? formatNumber(tokensTotal, 0) + ' tok' : '—';
+            const costDisplay = detail_json.cost_usd_actual !== undefined ? '$' + detail_json.cost_usd_actual.toFixed(4) : '—';
+            const durDisplay = formatDuration(detail_json.subagent_duration_seconds);
+            const outcomeColor = it.outcome === 'target_hit' ? 'bg-green-50 border-green-300' :
+                                  it.outcome === 'stop_hit' ? 'bg-red-50 border-red-300' :
+                                  it.outcome === 'timeout' ? 'bg-gray-50 border-gray-300' :
+                                  it.outcome === 'skipped' ? 'bg-yellow-50 border-yellow-300' :
+                                  'bg-orange-50 border-orange-300';
+            const outcomeLabel = it.outcome === 'target_hit' ? '✓ Target hit' :
+                                  it.outcome === 'stop_hit' ? '✗ Stop hit' :
+                                  it.outcome === 'timeout' ? '⏱ Timeout (precio ni al target ni al stop)' :
+                                  it.outcome === 'skipped' ? '⊘ NO ACTION (sub-agente no entró)' :
+                                  '⚠ Error';
+            const bestBadge = i === bestIdx ? '<span class="text-xs bg-green-200 text-green-800 px-1.5 py-0.5 rounded ml-1">Mejor</span>' : '';
+            const worstBadge = i === worstIdx ? '<span class="text-xs bg-red-200 text-red-800 px-1.5 py-0.5 rounded ml-1">Peor</span>' : '';
+
+            // Reasoning breakdown
+            const reasoningPoints = parseReasoning(it.reasoning || '');
+            let reasoningHtml = '';
+            if (reasoningPoints.length > 0) {
+              reasoningHtml = '<div class="mt-3 p-3 bg-white rounded border border-gray-200">';
+              reasoningHtml += '<div class="text-xs font-medium text-gray-700 mb-2">📋 ¿Qué llevó a esta decisión? (criterios del sub-agente):</div>';
+              reasoningHtml += '<ul class="space-y-1 text-xs text-gray-700">';
+              for (const pt of reasoningPoints) {
+                const labelColor = pt.label.toLowerCase().includes('buy') || pt.label.toLowerCase().includes('acción') ? 'text-green-700' :
+                                    pt.label.toLowerCase().includes('no action') || pt.label.toLowerCase().includes('stop') ? 'text-red-700' :
+                                    'text-gray-700';
+                reasoningHtml += '<li class="flex items-start gap-2">';
+                reasoningHtml += '<span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></span>';
+                reasoningHtml += '<span><span class="font-medium ' + labelColor + '">' + escapeHtml(pt.label) + '</span>';
+                if (pt.detail) reasoningHtml += ' <span class="text-gray-500">— ' + escapeHtml(pt.detail) + '</span>';
+                reasoningHtml += '</span></li>';
+              }
+              reasoningHtml += '</ul></div>';
+            }
+
+            html += '<div class="mb-4 p-4 border rounded-lg ' + outcomeColor + '">';
+            html += '<div class="flex items-start justify-between mb-2">';
+            html += '<div>';
+            html += '<div class="font-medium text-gray-900">Iteración ' + it.iteration_index + ': ' + asOfFmt + ' <span class="text-gray-500 text-sm">(' + asOfRel + ')</span>' + bestBadge + worstBadge + '</div>';
+            html += '<div class="text-xs text-gray-500">Ventana analizada: ' + asOfFmt + ' → ' + windowEnd + ' (' + detail.step_days + ' días)</div>';
+            html += '</div>';
+            html += '<div class="text-right">';
+            html += '<div class="text-sm font-bold ' + (it.outcome === 'target_hit' ? 'text-green-600' : it.outcome === 'stop_hit' ? 'text-red-600' : 'text-gray-600') + '">' + outcomeLabel + '</div>';
+            html += '</div></div>';
+
+            // Prediction
+            html += '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">';
+            html += '<div><dt class="text-xs text-gray-500">Decisión</dt><dd class="font-medium">' + it.decision + (it.confidence ? ' <span class="text-xs text-gray-500">(' + it.confidence + ')</span>' : '') + '</dd></div>';
+            html += '<div><dt class="text-xs text-gray-500">Entry</dt><dd>' + entry + '</dd></div>';
+            html += '<div><dt class="text-xs text-gray-500">Stop</dt><dd>' + stop + '</dd></div>';
+            html += '<div><dt class="text-xs text-gray-500">Target</dt><dd>' + target + '</dd></div>';
+            html += '</div>';
+
+            // Result
+            if (pnlVal !== null && pnlVal !== undefined) {
+              html += '<div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">';
+              html += '<div><dt class="text-xs text-gray-500">Precio salida</dt><dd>$' + (it.exit_price !== null ? it.exit_price.toFixed(2) : '—') + '</dd></div>';
+              html += '<div><dt class="text-xs text-gray-500">P&L</dt><dd>' + pnlDisplay + '</dd></div>';
+              html += '<div><dt class="text-xs text-gray-500">P&L %</dt><dd>' + pnlPctDisplay + '</dd></div>';
+              if (it.bars_traversed) html += '<div><dt class="text-xs text-gray-500">Bars traversed</dt><dd>' + it.bars_traversed + '</dd></div>';
+              html += '</div>';
+            } else if (it.outcome === 'skipped') {
+              html += '<div class="mt-2 text-sm text-gray-500 italic">Sub-agente no abrió posición (NO ACTION). P&L = $0, coste gastado en análisis.</div>';
+            }
+
+            // Telemetry per iter
+            html += '<div class="mt-2 text-xs text-gray-500">' + tokensDisplay + ' • ' + costDisplay + ' • ' + durDisplay + ' sub-agente</div>';
+
+            // Reasoning breakdown
+            html += reasoningHtml;
+
+            // Botón para ver análisis técnico completo
+            html += '<button class="analysis-btn mt-3 text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100" data-iter="' + it.iteration_index + '">📊 Ver análisis técnico completo del sub-agente</button>';
+            html += '<div class="analysis-content mt-2 hidden" id="analysis-' + it.iteration_index + '"><p class="text-xs text-gray-500 italic">Cargando análisis técnico...</p></div>';
+
+            html += '</div>';
+          }
+        }
+
+        runDetailContent.innerHTML = html;
+        runDetail.classList.remove('hidden');
+        runDetail.scrollIntoView({ behavior: 'smooth' });
+        attachAnalysisHandlers(runId);
+
+        const abortBtn = document.getElementById('abort-btn');
+        if (abortBtn) {
+          abortBtn.addEventListener('click', async () => {
+            if (!confirm('¿Parar este backtest?')) return;
+            try {
+              await fetchJSON<any>(`/api/backtest/runs/${runId}/abort`, {
+                method: 'POST',
+                body: JSON.stringify({ reason: 'user_aborted_from_detail' }),
+              });
+              await loadRuns();
+              loadDetail(runId);
+            } catch (e: any) {
+              alert('Error: ' + e.message);
+            }
+          });
+        }
+      } catch (e: any) {
+        runDetailContent.innerHTML = `<p class="text-sm text-red-600">Error: ${e.message}</p>`;
+        runDetail.classList.remove('hidden');
+      }
+    }
+
+    // Render the full technical analysis for an iteration (TA pipeline + decision).
+    function renderAnalysis(analysis: any): string {
+      const ta = analysis.ta_output;
+      const dec = analysis.decision;
+      if (!ta && !dec) return '<p class="text-xs text-gray-500 italic">No hay datos de análisis disponibles para esta iteración.</p>';
+
+      let html = '';
+
+      // === Decision section ===
+      if (dec) {
+        const decision = dec.decision || '?';
+        const confidence = dec.confidence || '?';
+        const decisionColor = decision === 'BUY' ? 'green' : decision === 'SELL' ? 'red' : 'gray';
+        const summary = dec.summary || '';
+        const confluence = dec.criteria?.confluence || dec.confluence;
+        const invalidation = dec.invalidation || [];
+        const warnings = dec.warnings || [];
+
+        html += '<div class="p-3 bg-' + decisionColor + '-50 border border-' + decisionColor + '-200 rounded">';
+        html += '<div class="flex items-center justify-between mb-2">';
+        html += '<span class="font-bold text-' + decisionColor + '-900">' + decision + ' <span class="text-sm font-normal text-gray-600">(' + confidence + ')</span></span>';
+        if (summary) html += '<span class="text-xs text-gray-600">' + escapeHtml(summary) + '</span>';
+        html += '</div>';
+
+        if (confluence && confluence.bullish_methods !== undefined) {
+          html += '<div class="mt-2 text-xs">';
+          html += '<strong>Confluencia:</strong> ';
+          html += '<span class="text-green-700">' + confluence.bullish_methods + ' bullish</span> / ';
+          html += '<span class="text-red-700">' + confluence.bearish_methods + ' bearish</span>';
+          html += '</div>';
+        }
+
+        if (invalidation.length > 0) {
+          html += '<div class="mt-2 text-xs"><strong>Invalidación:</strong><ul class="list-disc list-inside ml-3 text-gray-600">';
+          for (const inv of invalidation) html += '<li>' + escapeHtml(inv) + '</li>';
+          html += '</ul></div>';
+        }
+
+        if (warnings.length > 0) {
+          html += '<div class="mt-2 text-xs"><strong>Warnings:</strong><ul class="list-disc list-inside ml-3 text-orange-600">';
+          for (const w of warnings) html += '<li>' + escapeHtml(w) + '</li>';
+          html += '</ul></div>';
+        }
+        html += '</div>';
+
+        // === Criteria evaluated ===
+        if (dec.criteria && Array.isArray(dec.criteria)) {
+          html += '<div class="mt-3"><div class="text-xs font-semibold text-gray-700 mb-2">Criterios evaluados:</div>';
+          for (const c of dec.criteria) {
+            const status = c.status || '?';
+            const statusColor = status === 'pass' ? 'green' : status === 'fail' ? 'red' : 'gray';
+            const name = c.name || c.criterion || '?';
+            html += '<div class="flex items-start gap-2 text-xs py-1">';
+            html += '<span class="inline-block px-1.5 py-0.5 rounded text-[10px] bg-' + statusColor + '-100 text-' + statusColor + '-700 font-medium">' + status.toUpperCase() + '</span>';
+            html += '<div class="flex-1"><div class="font-medium text-gray-800">' + escapeHtml(name) + '</div>';
+            if (c.detail) html += '<div class="text-gray-600">' + escapeHtml(c.detail) + '</div>';
+            if (c.evidence) html += '<div class="text-gray-500 text-[10px] mt-0.5">' + escapeHtml(c.evidence) + '</div>';
+            html += '</div></div>';
+          }
+          html += '</div>';
+        }
+      }
+
+      // === TA pipeline ===
+      if (ta) {
+        html += '<div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">';
+        html += '<div class="text-xs font-semibold text-gray-700 mb-2">📐 Pipeline técnico (datos que vio el sub-agente):</div>';
+        html += '<div class="text-[10px] text-gray-500 mb-2">' + (ta.barsCount || '?') + ' barras • ' + (ta.snapshotDate || '?') + ' • precio=' + (ta.currentPrice || '?') + '</div>';
+
+        // Pivots
+        if (ta.pivots) {
+          const pivotsDetected = (ta.pivots.pivotsDetected || []).length;
+          const hasDefault = ta.pivots.defaultPair ? '✓' : '✗';
+          const hasMech = ta.pivots.mechanicalFallback ? '✓' : '✗';
+          html += '<div class="text-xs mt-1"><strong>1. Estructura (pivots):</strong> ' + pivotsDetected + ' pivots detectados. defaultPair=' + hasDefault + ', mechFallback=' + hasMech + '</div>';
+          if (ta.pivots.defaultPair) {
+            const p = ta.pivots.defaultPair;
+            html += '<div class="text-[10px] text-gray-600 ml-3">start=' + p.start + ' @ ' + (p.startPrice || p.start_price) + ', end=' + p.end + ' @ ' + (p.endPrice || p.end_price) + ', conf=' + (p.anchorConfidence || p.confidence || '?') + '</div>';
+          }
+        }
+
+        // Fibonacci
+        if (ta.fibonacci) {
+          const f = ta.fibonacci;
+          html += '<div class="text-xs mt-1"><strong>2. Fibonacci (' + (f.mode || '?') + '):</strong> direction=' + (f.direction || '?') + ', anchor=' + (f.anchor ? 'sí' : 'no');
+          if (f.levels && Object.keys(f.levels).length > 0) {
+            const levs = Object.entries(f.levels).slice(0, 4).map(([k, v]) => k + '=' + v).join(', ');
+            html += ', levels: ' + escapeHtml(levs);
+          }
+          html += '</div>';
+        }
+
+        // Volume profile
+        if (ta.volumeProfile) {
+          const v = ta.volumeProfile;
+          if (v.available) {
+            html += '<div class="text-xs mt-1"><strong>3. Volume Profile:</strong> ' + v.profileType + ', precio=' + v.currentPricePosition;
+            if (v.valueAreaLow && v.valueAreaHigh) html += ' (VAH=' + v.valueAreaHigh.toFixed(2) + ')';
+            if (v.pointOfControl) html += ', POC=' + v.pointOfControl.priceLow.toFixed(2) + '-' + v.pointOfControl.priceHigh.toFixed(2);
+            html += '</div>';
+          } else {
+            html += '<div class="text-xs mt-1"><strong>3. Volume Profile:</strong> no disponible (' + (v.reason || '?') + ')</div>';
+          }
+        }
+
+        // Patterns
+        if (ta.patterns) {
+          const p = ta.patterns;
+          if (p.detected && p.detected.length > 0) {
+            html += '<div class="text-xs mt-1"><strong>4. Patrones:</strong> ' + p.detected.length + ' detectado(s): ';
+            for (const pd of p.detected) {
+              html += '<span class="px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] mr-1">' + escapeHtml(pd.patternType || pd.name || '?') + ' (' + (pd.status || '?') + ', ' + (pd.directionBias || '?') + ')</span>';
+            }
+            html += '</div>';
+          } else {
+            html += '<div class="text-xs mt-1"><strong>4. Patrones:</strong> ninguno detectado (' + (p.reason || '?') + ')</div>';
+          }
+        }
+
+        // Range relevance
+        if (ta.rangeRelevance) {
+          const r = ta.rangeRelevance;
+          if (r.actionableZones && r.actionableZones.length > 0) {
+            html += '<div class="text-xs mt-1"><strong>5. Range Relevance:</strong> ' + r.actionableZones.length + ' zona(s) accionable(s)</div>';
+          }
+        }
+
+        html += '</div>';
+      }
+
+      return html;
+    }
+
+    // Attach handlers for analysis buttons after each detail load.
+    function attachAnalysisHandlers(runId: string) {
+      const buttons = document.querySelectorAll('.analysis-btn');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const iterIndex = parseInt(btn.getAttribute('data-iter') || '0', 10);
+          const contentDiv = document.getElementById('analysis-' + iterIndex);
+          if (!contentDiv) return;
+          if (!contentDiv.classList.contains('hidden')) {
+            contentDiv.classList.add('hidden');
+            return;
+          }
+          contentDiv.classList.remove('hidden');
+          contentDiv.innerHTML = '<p class="text-xs text-gray-500 italic">Cargando análisis técnico...</p>';
+          try {
+            const analysis = await fetchJSON<any>(`/api/backtest/runs/${runId}/iterations/${iterIndex}/analysis`);
+            contentDiv.innerHTML = renderAnalysis(analysis);
+          } catch (e: any) {
+            contentDiv.innerHTML = '<p class="text-xs text-red-600">Error: ' + e.message + '</p>';
+          }
+        });
+      });
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Initial load.
+    for (const id of ['ticker', 'step_days', 'window_days', 'max_iterations']) {
+      const el = document.getElementById(id);
+      el?.addEventListener('change', refreshEstimate);
+      (el as HTMLInputElement)?.addEventListener?.('input', refreshEstimate);
+    }
+    refreshEstimate();
+    loadRuns();
+    setInterval(loadRuns, 5000);
+  </script>
+</Layout>

@@ -1,0 +1,112 @@
+---
+/**
+ * /tools — catálogo de herramientas deterministas (CLIs Python vendoreados
+ * en ~/trading-agent/python/opes_quant/cli/).
+ *
+ * Read-only: lista las tools con descripción, input/output shape, y la
+ * skill que las invoca. Para ejecutar una tool, hay que montarla dentro
+ * del container del dashboard (futuro).
+ */
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Tools" active="tools">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Tools deterministas</h2>
+      <p class="text-sm text-muted mt-1">
+        CLIs Python vendoreados en <code class="text-xs px-1 py-0.5 bg-gray-100 rounded font-mono">~/trading-agent/python/opes_quant/cli/</code>.
+        Mismas herramientas que invocan las skills <code class="text-xs px-1 py-0.5 bg-gray-100 rounded font-mono">technical-analysis</code> y <code class="text-xs px-1 py-0.5 bg-gray-100 rounded font-mono">options-analysis</code>.
+      </p>
+    </div>
+  </div>
+
+  <div id="tools-root" data-testid="tools-list">
+    <div class="card text-sm text-muted">Cargando tools…</div>
+  </div>
+
+  <script>
+    import { api } from '../lib/api';
+
+    async function load() {
+      const root = document.getElementById('tools-root');
+      if (!root) return;
+      try {
+        const data = await fetch('/api/tools/', {
+          headers: { Authorization: 'Basic ' + btoa(unescape(encodeURIComponent(
+            (() => { try { return JSON.parse(localStorage.getItem('opes_auth') || '{}'); } catch { return {}; } })().username + ':' +
+            (() => { try { return JSON.parse(localStorage.getItem('opes_auth') || '{}'); } catch { return {}; } })().password
+          ))) },
+        }).then(r => r.json());
+        const items = data.items || [];
+        if (items.length === 0) {
+          root.innerHTML = '<div class="card text-sm text-muted">No hay tools registradas.</div>';
+          return;
+        }
+        // Group by category
+        const byCategory: Record<string, any[]> = {};
+        for (const t of items) {
+          (byCategory[t.category] = byCategory[t.category] || []).push(t);
+        }
+        const categoryLabels: Record<string, string> = {
+          'technical-analysis': 'Análisis técnico',
+          'options-analysis': 'Análisis de opciones',
+          'utility': 'Utilidades',
+        };
+        const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+        const renderTool = (t: any) => {
+          const inputKeys = Object.keys(t.input_shape || {}).map(k => `<code class="text-xs">${k}</code>`).join(', ');
+          const usedBy = (t.used_by_skills || []).map((s: string) => `<code class="text-xs px-1 py-0.5 bg-brand-50 text-brand-700 rounded font-mono">${s}</code>`).join(' ') || '<span class="text-xs text-muted">—</span>';
+          const avail = t.available_on_host
+            ? '<span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">disponible</span>'
+            : '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs">no montado</span>';
+          return `
+            <details class="card">
+              <summary class="cursor-pointer list-none">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-base font-mono font-semibold">${escapeHtml(t.name)}</h3>
+                    <p class="text-sm text-muted mt-1">${escapeHtml(t.summary)}</p>
+                  </div>
+                  <div class="flex flex-col items-end gap-1">
+                    ${avail}
+                    <span class="text-xs font-mono text-muted">${escapeHtml(t.module)}</span>
+                  </div>
+                </div>
+              </summary>
+              <div class="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Input</h4>
+                  <div class="text-xs space-y-1">
+                    ${Object.entries(t.input_shape || {}).map(([k, v]) => `<div class="flex gap-2"><code class="text-brand-600 flex-shrink-0">${escapeHtml(k)}</code><span class="text-muted">${escapeHtml(String(v))}</span></div>`).join('')}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Output</h4>
+                  <pre class="text-xs bg-gray-50 border border-gray-200 rounded p-2 font-mono whitespace-pre-wrap break-words">${escapeHtml(t.output_shape || '')}</pre>
+                  <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-2 mt-3">Usado por</h4>
+                  <div>${usedBy}</div>
+                </div>
+              </div>
+            </details>
+          `;
+        };
+        const sections = Object.entries(byCategory).map(([cat, tools]) => `
+          <section class="mb-6">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">${escapeHtml(categoryLabels[cat] || cat)}</h3>
+            <div class="space-y-2">${tools.map(renderTool).join('')}</div>
+          </section>
+        `).join('');
+        root.innerHTML = `
+          <div class="mb-4 text-xs text-muted">
+            <span class="px-2 py-0.5 bg-gray-100 rounded">${data.total} tools</span>
+            <span class="px-2 py-0.5 rounded ${data.runtime_mounted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} ml-2">runtime ${data.runtime_mounted ? 'montado' : 'no montado'}</span>
+          </div>
+          ${sections}
+        `;
+      } catch (e) {
+        root.innerHTML = `<div class="card text-sm text-loss">Error: ${(e as Error).message}</div>`;
+      }
+    }
+    load();
+  </script>
+</Layout>

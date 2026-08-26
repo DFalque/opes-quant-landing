@@ -1,0 +1,18 @@
+---
+import LandingPage from '../components/LandingPage.tsx';
+import landingStyles from '../styles/landing.css?url';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="OPES. Intelligence for markets." />
+    <link rel="stylesheet" href={landingStyles} />
+    <title>OPES — Intelligence for markets</title>
+  </head>
+  <body>
+    <LandingPage client:load />
+  </body>
+</html>

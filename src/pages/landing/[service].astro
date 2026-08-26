@@ -1,0 +1,33 @@
+---
+import ServiceDetail from '../../components/ServiceDetail.tsx';
+import { landingServices } from '../../data/landing-services';
+import type { LandingService } from '../../data/landing-services';
+import detailStyles from '../../styles/service-detail.css?url';
+
+interface Props {
+  service: LandingService;
+}
+
+export function getStaticPaths() {
+  return landingServices.map((service) => ({
+    params: { service: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props as Props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={`${service.name}: ${service.copy}`} />
+    <link rel="stylesheet" href={detailStyles} />
+    <title>{service.name} — OPES</title>
+  </head>
+  <body>
+    <ServiceDetail client:load service={service} />
+  </body>
+</html>

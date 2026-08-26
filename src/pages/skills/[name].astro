@@ -1,0 +1,29 @@
+---
+/**
+ * /skills/[name] — read-only detail of a single skill.
+ *
+ * Static-mode dynamic route: getStaticPaths returns a single placeholder;
+ * the React island reads the actual skill name from window.location at
+ * runtime. FastAPI's SPA fallback serves this template for any
+ * /skills/<name> path, then the JS loads data from the API.
+ */
+import Layout from '../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return [{ params: { name: '__placeholder__' } }];
+}
+---
+<Layout title="Skill" active="skills">
+  <div id="skill-root" data-testid="skill-detail">
+    <div class="card text-sm text-muted">Cargando skill…</div>
+  </div>
+
+  <script>
+    import { createElement } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import SkillDetail from '../../components/SkillDetail.tsx';
+
+    const root = createRoot(document.getElementById('skill-root'));
+    root.render(createElement(SkillDetail));
+  </script>
+</Layout>

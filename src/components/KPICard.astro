@@ -1,0 +1,28 @@
+---
+/**
+ * Key Performance Indicator card: a single big number with a label and optional sub-text.
+ */
+interface Props {
+  label: string;
+  value: string;
+  sub?: string;
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+}
+
+const { label, value, sub, trend, trendValue } = Astro.props;
+
+const trendColor =
+  trend === 'up' ? 'text-profit' : trend === 'down' ? 'text-loss' : 'text-muted';
+const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→';
+---
+<div class="card flex flex-col">
+  <span class="text-xs uppercase tracking-wide text-muted font-medium">{label}</span>
+  <span class="text-3xl font-bold mt-2 text-gray-900">{value}</span>
+  {sub && <span class="text-sm text-muted mt-1">{sub}</span>}
+  {trend && trendValue && (
+    <span class:list={['text-sm font-medium mt-2', trendColor]}>
+      {trendIcon} {trendValue}
+    </span>
+  )}
+</div>

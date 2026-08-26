@@ -1,0 +1,67 @@
+---
+/**
+ * Generic table component. Accepts an array of column definitions and rows.
+ * Renders the header from columns and the body from rows; cells are accessed
+ * by either a string key or a function for computed values.
+ */
+
+export interface Column<T> {
+  key: string;
+  label: string;
+  align?: 'left' | 'right' | 'center';
+  format?: (value: T) => string;
+  cell?: (row: T) => unknown;
+}
+
+interface Props {
+  columns: Column<any>[];
+  rows: any[];
+  emptyMessage?: string;
+  className?: string;
+}
+
+const { columns, rows, emptyMessage = 'No hay datos', className = '' } = Astro.props;
+---
+<div class={`card overflow-x-auto p-0 ${className}`}>
+  {rows.length === 0 ? (
+    <div class="px-6 py-12 text-center text-muted text-sm">{emptyMessage}</div>
+  ) : (
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          {columns.map((c) => (
+            <th
+              scope="col"
+              class:list={[
+                'px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider',
+                c.align === 'right' ? 'text-right' : c.align === 'center' ? 'text-center' : 'text-left',
+              ]}
+            >
+              {c.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {rows.map((row) => (
+          <tr class="hover:bg-gray-50 transition-colors">
+            {columns.map((c) => {
+              const raw = c.cell ? c.cell(row) : row[c.key];
+              const display = c.format ? c.format(row) : raw;
+              return (
+                <td
+                  class:list={[
+                    'px-4 py-3 whitespace-nowrap',
+                    c.align === 'right' ? 'text-right' : c.align === 'center' ? 'text-center' : 'text-left',
+                  ]}
+                >
+                  {display as any}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</div>

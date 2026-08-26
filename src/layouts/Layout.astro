@@ -1,0 +1,34 @@
+---
+/**
+ * Base layout shared by all dashboard pages.
+ * Renders the sidebar + main content area. Includes the global Tailwind CSS
+ * and the ToastContainer (React island) for global notifications.
+ */
+import Sidebar from '../components/Sidebar.astro';
+import ToastContainer from '../components/ToastContainer';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  active?: 'dashboard' | 'positions' | 'analyses' | 'sessions' | 'agent' | 'observability' | 'skills' | 'tools' | 'backtest';
+}
+
+const { title, active } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} — opes-quant dashboard</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen font-sans">
+    <Sidebar active={active} />
+    <main class="ml-64 p-8 max-w-7xl min-h-screen overflow-x-hidden">
+      <slot />
+    </main>
+    <ToastContainer client:load />
+  </body>
+</html>

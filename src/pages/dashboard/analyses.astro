@@ -1,0 +1,180 @@
+---
+/**
+ * /dashboard/analyses — lista todos los análisis per-ticker con decisión,
+ * confidence y reasoning. Click en una fila abre el detalle (markdown body).
+ * Data fetched client-side via api.analyses() (auth via localStorage).
+ */
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Análisis" active="analyses">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Análisis per-ticker</h2>
+    <p class="text-sm text-muted mt-1">
+      Informes técnicos generados por el agente en cada sesión. Un análisis por ticker y por fecha.
+      Click en una fila para ver el detalle.
+    </p>
+  </div>
+
+  <div class="mb-4 flex items-center gap-3 text-sm">
+    <label class="flex items-center gap-2">
+      <span class="text-muted">Ticker:</span>
+      <select id="ticker-filter" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+        <option value="">Todos</option>
+      </select>
+    </label>
+    <button id="reload-btn" class="px-3 py-1.5 bg-brand-600 text-white rounded-md text-sm hover:bg-brand-700">
+      Recargar
+    </button>
+    <span id="status-msg" class="text-muted ml-auto"></span>
+  </div>
+
+  <div id="analyses-root">
+    <div class="card text-sm text-muted">Cargando análisis…</div>
+  </div>
+
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <h3 id="detail-title" class="text-lg font-semibold">Detalle del análisis</h3>
+        <button id="detail-close" type="button" class="text-gray-500 hover:text-gray-900 text-2xl leading-none">×</button>
+      </div>
+      <div id="detail-meta" class="px-6 py-3 bg-gray-50 text-sm text-gray-700 border-b border-gray-200"></div>
+      <div id="detail-body" class="px-6 py-4 overflow-y-auto text-sm font-mono whitespace-pre-wrap"></div>
+    </div>
+  </div>
+
+  <script>
+    import { api, ApiError } from '../../lib/api';
+
+    const root = document.getElementById('analyses-root')!;
+    const tickerFilter = document.getElementById('ticker-filter') as HTMLSelectElement;
+    const reloadBtn = document.getElementById('reload-btn') as HTMLButtonElement;
+    const statusMsg = document.getElementById('status-msg')!;
+    const modal = document.getElementById('detail-modal')!;
+    const modalTitle = document.getElementById('detail-title')!;
+    const modalMeta = document.getElementById('detail-meta')!;
+    const modalBody = document.getElementById('detail-body')!;
+    const modalClose = document.getElementById('detail-close')!;
+
+    modalClose.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
+    });
+    reloadBtn.addEventListener('click', () => load());
+
+    tickerFilter.addEventListener('change', () => load());
+
+    const decisionColor = (d: string | null) => {
+      if (!d) return 'bg-gray-100 text-gray-600';
+      if (d === 'BUY') return 'bg-green-100 text-green-800';
+      if (d === 'SELL') return 'bg-red-100 text-red-800';
+      return 'bg-yellow-100 text-yellow-800'; // HOLD
+    };
+
+    const confidencePct = (c: number | null) =>
+      c == null ? '—' : `${Math.round(c * 100)}%`;
+
+    function render(items: any[]) {
+      if (items.length === 0) {
+        root.innerHTML = '<div class="card text-sm text-muted">Sin análisis registrados. Ejecutá el agente para generar.</div>';
+        return;
+      }
+      const table = document.createElement('table');
+      table.className = 'min-w-full divide-y divide-gray-200 text-sm bg-white rounded-lg overflow-hidden shadow-sm';
+      table.innerHTML = `
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Ticker</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Decisión</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Conf.</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sess</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Reasoning</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          ${items.map((a) => `
+            <tr class="hover:bg-gray-50 cursor-pointer" data-ticker="${a.ticker}" data-id="${a.id}">
+              <td class="px-4 py-3 text-gray-600 font-mono text-xs">${(a.ts || '').slice(0, 10)}</td>
+              <td class="px-4 py-3 font-semibold text-gray-900">${a.ticker}</td>
+              <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${decisionColor(a.decision)}">${a.decision || '—'}</span></td>
+              <td class="px-4 py-3 text-right font-mono">${confidencePct(a.confidence)}</td>
+              <td class="px-4 py-3 text-gray-600 font-mono text-xs">${a.session_id ?? '—'}</td>
+              <td class="px-4 py-3 text-gray-700 text-xs truncate max-w-md">${a.reasoning || '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      root.innerHTML = '';
+      root.appendChild(table);
+
+      // Wire row clicks
+      root.querySelectorAll('tr[data-ticker]').forEach((tr) => {
+        tr.addEventListener('click', () => {
+          const ticker = (tr as HTMLElement).dataset.ticker!;
+          const id = parseInt((tr as HTMLElement).dataset.id!);
+          openDetail(ticker, id);
+        });
+      });
+    }
+
+    async function openDetail(ticker: string, id: number) {
+      try {
+        const detail = await api.analysisDetail(ticker, id);
+        modalTitle.textContent = `${detail.ticker} — ${(detail.ts || '').slice(0, 10)}`;
+        const fm = detail.json_blob?.frontmatter || {};
+        modalMeta.innerHTML = `
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div><span class="text-muted">Decisión:</span> <span class="px-2 py-0.5 rounded-full text-xs font-medium ${decisionColor(detail.decision)}">${detail.decision || '—'}</span></div>
+            <div><span class="text-muted">Confidence:</span> <span class="font-mono">${confidencePct(detail.confidence)}</span></div>
+            <div><span class="text-muted">Trend:</span> ${fm.trend || '—'}</div>
+            <div><span class="text-muted">Latest price:</span> <span class="font-mono">${fm.latest_price || '—'}</span></div>
+            <div><span class="text-muted">Confluence:</span> ${fm.confluence || '—'}</div>
+            <div><span class="text-muted">Skill:</span> ${detail.skill_name || '—'}</div>
+            <div class="col-span-2"><span class="text-muted">Reasoning:</span> ${detail.reasoning || '—'}</div>
+          </div>
+        `;
+        modalBody.textContent = detail.json_blob?.body || '(vacío)';
+        modal.classList.remove('hidden');
+      } catch (e) {
+        if (e instanceof ApiError) {
+          statusMsg.textContent = `Error: ${e.message}`;
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    function fillTickerFilter(items: any[]) {
+      const tickers = Array.from(new Set(items.map((a) => a.ticker))).sort();
+      const current = tickerFilter.value;
+      tickerFilter.innerHTML = '<option value="">Todos</option>' +
+        tickers.map((t) => `<option value="${t}">${t}</option>`).join('');
+      tickerFilter.value = current;
+    }
+
+    async function load() {
+      statusMsg.textContent = 'Cargando…';
+      try {
+        const ticker = tickerFilter.value || undefined;
+        const data = await api.analyses({ ticker, limit: 200 });
+        render(data.items);
+        fillTickerFilter(data.items);
+        statusMsg.textContent = `${data.items.length} análisis`;
+      } catch (e) {
+        if (e instanceof ApiError) {
+          if (e.status === 401) {
+            statusMsg.textContent = 'No autenticado. Hacé login primero.';
+            setTimeout(() => { window.location.href = '/login'; }, 2000);
+          } else {
+            statusMsg.textContent = `Error: ${e.message}`;
+          }
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    load();
+  </script>
+</Layout>

@@ -1,0 +1,35 @@
+---
+/**
+ * /skills/[name]/edit — editor view for a single skill.
+ * Same SPA pattern as the detail view: the page is a template, the actual
+ * skill name is read from window.location at runtime.
+ */
+import Layout from '../../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return [{ params: { name: '__placeholder__' } }];
+}
+---
+<Layout title="Editar skill" active="skills">
+  <div class="mb-4 flex items-center justify-between">
+    <a href="/skills" class="text-sm text-brand-600 hover:text-brand-700">&larr; Volver a skills</a>
+    <a id="view-link" href="/skills" class="text-sm text-brand-600 hover:text-brand-700">Ver detalle</a>
+  </div>
+  <h2 class="text-2xl font-bold text-gray-900 mb-4">
+    Editar <span id="skill-name-display" class="font-mono"></span>
+  </h2>
+  <div id="editor-mount"></div>
+
+  <script>
+    import { createElement } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import SkillEditor from '../../../components/SkillEditor.tsx';
+
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const name = parts[1] ?? '';
+    document.getElementById('skill-name-display')!.textContent = name;
+    document.getElementById('view-link')!.setAttribute('href', `/skills/${name}`);
+    const root = createRoot(document.getElementById('editor-mount')!);
+    root.render(createElement(SkillEditor, { skillName: name }));
+  </script>
+</Layout>

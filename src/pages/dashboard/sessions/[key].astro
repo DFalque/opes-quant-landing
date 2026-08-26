@@ -1,0 +1,40 @@
+---
+/**
+ * /dashboard/sessions/[key] — read-only detail of a single session.
+ *
+ * Shows session-level telemetry (duration, cost, tokens, errors, warnings)
+ * plus the list of sub-agent invocations within the session (name, duration,
+ * cost, decisions). Sub-agents link to the Sub-agent column in observability.
+ *
+ * Static-mode dynamic route: getStaticPaths returns a single placeholder;
+ * the React island reads the actual session_key from window.location.
+ */
+import Layout from '../../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return [{ params: { key: '__placeholder__' } }];
+}
+---
+<Layout title="Sesión" active="sessions">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">
+      Detalle de sesión
+    </h2>
+    <p class="text-sm text-muted mt-1">
+      <a href="/dashboard/sessions" class="text-brand-600 hover:underline">← Volver a la lista</a>
+    </p>
+  </div>
+
+  <div id="session-detail-root" data-testid="session-detail">
+    <div class="card text-sm text-muted">Cargando sesión…</div>
+  </div>
+
+  <script>
+    import { createElement } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import SessionDetail from '../../../components/SessionDetail.tsx';
+
+    const root = createRoot(document.getElementById('session-detail-root'));
+    root.render(createElement(SessionDetail));
+  </script>
+</Layout>

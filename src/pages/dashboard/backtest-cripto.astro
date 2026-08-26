@@ -1,0 +1,397 @@
+---
+/**
+ * /dashboard/backtest-cripto — backtest mode UI for crypto (ADR-0012 Fase B).
+ *
+ * Mirror of /dashboard/backtest but for the sub-agente-cripto (SOL/USD,
+ * BTC/USD, ETH/USD). Separate page (not a sub-tab) to keep the equity
+ * and crypto flows visually isolated, per the user requirement of
+ * "no quiero que se entremezcle demasiado".
+ *
+ * Features (subset of the equity backtest page, kept minimal for MVP):
+ *   - Form (ticker, step, window, max_iter) with live cost estimate
+ *   - "Quick test" button (1 iteration) for cheap validation
+ *   - Runs table (status, progress, win rate, P&L, cost)
+ *   - Detail view with summary + per-iteration outcomes
+ */
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Backtest Cripto" active="backtest-cripto">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Modo Backtest Cripto</h2>
+    <p class="text-sm text-muted mt-1">
+      Validar si el <strong>sub-agente-cripto</strong> tiene poder predictivo
+      analizando decisiones sobre datos históricos vs resultados reales.
+      Mercado 24/7, sin horarios, sin opciones.
+    </p>
+  </div>
+
+  <div id="backtest-cripto-root">
+    <!-- ¿Qué hace? -->
+    <section class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+      <h3 class="text-lg font-semibold text-blue-900 mb-3">¿Qué hace el backtest cripto?</h3>
+      <ol class="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+        <li>Eliges un par cripto (<code class="bg-blue-100 px-1 rounded">SOL/USD</code>, <code class="bg-blue-100 px-1 rounded">BTC/USD</code>, <code class="bg-blue-100 px-1 rounded">ETH/USD</code>) y un periodo hacia atrás.</li>
+        <li>El sub-agente-cripto analiza cada fecha como si fuera ese día (solo ve datos anteriores a <code class="bg-blue-100 px-1 rounded">as_of</code>).</li>
+        <li>Produce una predicción: BUY con entry, stop, target (criterios: R/R ≥ 2.5:1, stop buffer ≥ 2%, confluencia moderada).</li>
+        <li>Después, coge los datos reales posteriores a esa fecha (siguientes <code class="bg-blue-100 px-1 rounded">step_days</code>).</li>
+        <li>Compara: ¿tocó target? ¿tocó stop? ¿se quedó a medias? ¿NO ACTION?</li>
+        <li>Agrega: win rate, P&amp;L total, distribución, coste, tiempo de ejecución.</li>
+      </ol>
+      <p class="text-xs text-blue-700 mt-3">
+        <strong>Importante:</strong> el periodo es determinista (no aleatorio). Dos runs con los mismos
+        params dan los mismos resultados. El sub-agente NO envía órdenes — es simulación pura.
+      </p>
+    </section>
+
+    <!-- Form -->
+    <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Nuevo Backtest Cripto</h3>
+      <form id="backtest-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Par</label>
+          <select name="ticker" id="ticker" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="SOL/USD">SOL/USD</option>
+            <option value="BTC/USD" selected>BTC/USD</option>
+            <option value="ETH/USD">ETH/USD</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Cada cuántos días tomas una fecha para analizar.">Step</label>
+          <select name="step_days" id="step_days" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="1">1 día</option>
+            <option value="7" selected>1 semana</option>
+            <option value="30">1 mes</option>
+            <option value="90">3 meses</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 año</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Cuánto tiempo hacia atrás miras desde hoy.">Window</label>
+          <select name="window_days" id="window_days" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="90" selected>3 meses</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 año</option>
+            <option value="730">2 años</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" title="Tope de seguridad para no gastar de más.">Max Iterations</label>
+          <input type="number" name="max_iterations" id="max_iterations" value="12" min="1" max="200"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <button type="button" id="quick-test-btn"
+                  class="w-full bg-gray-100 text-gray-800 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50"
+                  title="Lanza 1 sola iteración para validar el setup antes de un run completo. Coste ~$0.01.">
+            🧪 Quick test (1 iter)
+          </button>
+          <button type="submit" id="run-btn"
+                  class="w-full bg-blue-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            Run Backtest completo
+          </button>
+        </div>
+      </form>
+
+      <!-- Estimate with dates -->
+      <div id="estimate-display" class="mt-4 text-sm text-gray-600 hidden">
+        <div class="flex items-center gap-4 flex-wrap">
+          <span><strong id="estimate-iters">—</strong> iteraciones, <strong id="estimate-cost">—</strong> coste estimado</span>
+          <span class="text-xs text-gray-500">(~$<span id="estimate-per-iter">—</span> por iteración)</span>
+        </div>
+        <div class="mt-2">
+          <div class="text-xs text-gray-500 mb-1">Fechas que se analizarán (de más reciente a más antigua):</div>
+          <div id="estimate-dates" class="flex flex-wrap gap-1"></div>
+        </div>
+      </div>
+      <div id="form-error" class="mt-4 text-sm text-red-600 hidden"></div>
+    </section>
+
+    <!-- Runs list -->
+    <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Runs Recientes</h3>
+      <div id="runs-table" data-testid="runs-table">
+        <p class="text-sm text-muted">Cargando...</p>
+      </div>
+    </section>
+
+    <!-- Run detail -->
+    <section id="run-detail" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalle del Run</h3>
+      <div id="run-detail-content"></div>
+    </section>
+  </div>
+
+  <script>
+    // --- Helpers ---
+    function getAuthHeader(): Record<string, string> {
+      const u = (document.querySelector('meta[name="auth-username"]') as HTMLMetaElement)?.content;
+      const p = (document.querySelector('meta[name="auth-password"]') as HTMLMetaElement)?.content;
+      if (!u || !p) return {};
+      return { 'Authorization': 'Basic ' + btoa(u + ':' + p) };
+    }
+
+    async function fetchJSON<T>(url: string, opts: RequestInit = {}): Promise<T> {
+      const res = await fetch(url, { ...opts, headers: { ...getAuthHeader(), 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(detail.detail || res.statusText);
+      }
+      return res.json();
+    }
+
+    function formatDate(iso: string | undefined | null): string {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso + 'T00:00:00Z');
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch { return iso; }
+    }
+
+    function formatDateTime(iso: string | undefined | null): string {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleString('es-ES', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short',
+        });
+      } catch { return iso; }
+    }
+
+    function formatDuration(seconds: number | null | undefined): string {
+      if (seconds === null || seconds === undefined) return '—';
+      if (seconds < 60) return seconds.toFixed(1) + 's';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.floor(seconds % 60) + 's';
+      return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+    }
+
+    function formatUsd(n: number | null | undefined, decimals: number = 4): string {
+      if (n === null || n === undefined) return '—';
+      return '$' + n.toFixed(decimals);
+    }
+
+    function formatPercent(n: number | null | undefined, decimals: number = 1): string {
+      if (n === null || n === undefined) return '—';
+      return (n * 100).toFixed(decimals) + '%';
+    }
+
+    function statusToBadge(status: string): string {
+      const colors: Record<string, string> = {
+        queued: 'bg-gray-100 text-gray-800',
+        running: 'bg-blue-100 text-blue-800',
+        success: 'bg-green-100 text-green-800',
+        failed: 'bg-red-100 text-red-800',
+        aborted: 'bg-yellow-100 text-yellow-800',
+      };
+      return `<span class="inline-flex px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}">${status}</span>`;
+    }
+
+    function outcomeToBadge(outcome: string): string {
+      const colors: Record<string, string> = {
+        target_hit: 'bg-green-100 text-green-800',
+        stop_hit: 'bg-red-100 text-red-800',
+        timeout: 'bg-gray-100 text-gray-800',
+        skipped: 'bg-yellow-100 text-yellow-800',
+        error: 'bg-orange-100 text-orange-800',
+      };
+      return `<span class="inline-flex px-2 py-0.5 rounded text-xs font-medium ${colors[outcome] || 'bg-gray-100 text-gray-800'}">${outcome}</span>`;
+    }
+
+    // --- Elements ---
+    const form = document.getElementById('backtest-form') as HTMLFormElement;
+    const formError = document.getElementById('form-error') as HTMLDivElement;
+    const estimateDisplay = document.getElementById('estimate-display') as HTMLDivElement;
+    const estimateIters = document.getElementById('estimate-iters') as HTMLSpanElement;
+    const estimateCost = document.getElementById('estimate-cost') as HTMLSpanElement;
+    const estimatePerIter = document.getElementById('estimate-per-iter') as HTMLSpanElement;
+    const estimateDates = document.getElementById('estimate-dates') as HTMLDivElement;
+    const runsTable = document.getElementById('runs-table') as HTMLDivElement;
+    const runDetail = document.getElementById('run-detail') as HTMLElement;
+    const runDetailContent = document.getElementById('run-detail-content') as HTMLDivElement;
+    const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
+    const quickTestBtn = document.getElementById('quick-test-btn') as HTMLButtonElement;
+
+    async function refreshEstimate() {
+      const ticker = (document.getElementById('ticker') as HTMLSelectElement).value;
+      const stepDays = parseInt((document.getElementById('step_days') as HTMLSelectElement).value, 10);
+      const windowDays = parseInt((document.getElementById('window_days') as HTMLSelectElement).value, 10);
+      const maxIter = parseInt((document.getElementById('max_iterations') as HTMLInputElement).value, 10);
+      try {
+        const est = await fetchJSON<any>('/api/backtest-cripto/estimate', {
+          method: 'POST',
+          body: JSON.stringify({ ticker, step_days: stepDays, window_days: windowDays, max_iterations: maxIter }),
+        });
+        estimateDisplay.classList.remove('hidden');
+        estimateIters.textContent = String(est.iterations_total);
+        const cost = est.cost_usd_estimated;
+        estimateCost.textContent = '$' + cost.toFixed(2);
+        estimatePerIter.textContent = (cost / Math.max(est.iterations_total, 1)).toFixed(3);
+        if (est.dates && est.dates.length > 0) {
+          estimateDates.innerHTML = est.dates.map((d: string) => {
+            return `<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 border border-blue-200">${formatDate(d)}</span>`;
+          }).join('<span class="text-gray-400">→</span>');
+        } else {
+          estimateDates.innerHTML = '<span class="text-gray-400 text-xs">—</span>';
+        }
+      } catch (e) {
+        estimateDisplay.classList.add('hidden');
+      }
+    }
+
+    async function submitRun(quickTest: boolean) {
+      formError.classList.add('hidden');
+      runBtn.disabled = true;
+      quickTestBtn.disabled = true;
+      try {
+        const ticker = (document.getElementById('ticker') as HTMLSelectElement).value;
+        const stepDays = parseInt((document.getElementById('step_days') as HTMLSelectElement).value, 10);
+        const windowDays = parseInt((document.getElementById('window_days') as HTMLSelectElement).value, 10);
+        const maxIter = quickTest ? 1 : parseInt((document.getElementById('max_iterations') as HTMLInputElement).value, 10);
+        const run = await fetchJSON<any>('/api/backtest-cripto/runs', {
+          method: 'POST',
+          body: JSON.stringify({ ticker, step_days: stepDays, window_days: windowDays, max_iterations: maxIter }),
+        });
+        await loadRuns();
+        loadDetail(run.id);
+      } catch (err: any) {
+        formError.textContent = err.message;
+        formError.classList.remove('hidden');
+      } finally {
+        runBtn.disabled = false;
+        quickTestBtn.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); submitRun(false); });
+    quickTestBtn.addEventListener('click', () => { submitRun(true); });
+
+    async function loadRuns() {
+      try {
+        const runs = await fetchJSON<any[]>('/api/backtest-cripto/runs');
+        if (runs.length === 0) {
+          runsTable.innerHTML = '<p class="text-sm text-muted">No hay runs todavía. Lanza uno con el form de arriba.</p>';
+          return;
+        }
+        let html = '<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Par</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Iter</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Win Rate</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">P&L</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dur</th>';
+        html += '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Inicio</th>';
+        html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+        for (const r of runs) {
+          const summary = r.summary || {};
+          const winRate = summary.win_rate !== undefined && summary.win_rate !== null ? formatPercent(summary.win_rate, 0) : '—';
+          const pnl = summary.pnl_total !== undefined && summary.pnl_total !== null ? formatUsd(summary.pnl_total, 2) : '—';
+          const dur = formatDuration(r.duration_seconds);
+          const statusBadge = statusToBadge(r.status);
+          html += `<tr class="hover:bg-gray-50 cursor-pointer" data-run-id="${r.id}">`;
+          html += `<td class="px-3 py-2 text-sm font-medium text-gray-900">${r.ticker}</td>`;
+          html += `<td class="px-3 py-2 text-sm">${statusBadge}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${r.progress_done} / ${r.progress_total}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${winRate}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${pnl}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-700">${dur}</td>`;
+          html += `<td class="px-3 py-2 text-sm text-gray-500">${formatDateTime(r.started_at)}</td>`;
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        runsTable.innerHTML = html;
+        for (const row of runsTable.querySelectorAll('tr[data-run-id]')) {
+          row.addEventListener('click', () => loadDetail(row.getAttribute('data-run-id')!));
+        }
+      } catch (e: any) {
+        runsTable.innerHTML = `<p class="text-sm text-red-600">Error cargando runs: ${e.message}</p>`;
+      }
+    }
+
+    async function loadDetail(runId: string) {
+      try {
+        const detail = await fetchJSON<any>(`/api/backtest-cripto/runs/${runId}`);
+        const summary = detail.summary || {};
+        const iters = detail.iterations || [];
+        let html = '';
+
+        // Status + KPIs
+        html += '<div class="flex items-center gap-3 mb-4">';
+        html += statusToBadge(detail.status);
+        html += `<span class="text-sm text-gray-500">${detail.ticker} • ${detail.step_days}d step / ${detail.window_days}d window</span>`;
+        html += '</div>';
+
+        // Summary KPIs
+        const wins = summary.wins || 0;
+        const losses = summary.losses || 0;
+        const timeouts = summary.timeouts || 0;
+        const skipped = summary.skipped || 0;
+        const evaluated = wins + losses + timeouts;
+        const pnlTotal = summary.pnl_total || 0;
+        const winRate = summary.win_rate || 0;
+        const pnlColor = pnlTotal > 0 ? 'text-green-600' : pnlTotal < 0 ? 'text-red-600' : 'text-gray-900';
+
+        html += '<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">';
+        html += `<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">P&L Total</div><div class="text-2xl font-bold ${pnlColor}">${formatUsd(pnlTotal, 2)}</div></div>`;
+        html += `<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Win Rate</div><div class="text-2xl font-bold text-gray-900">${formatPercent(winRate, 1)}</div><div class="text-xs text-gray-500 mt-1">${wins} de ${evaluated}</div></div>`;
+        html += `<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Target hit</div><div class="text-2xl font-bold text-green-600">${wins}</div></div>`;
+        html += `<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Stop hit</div><div class="text-2xl font-bold text-red-600">${losses}</div></div>`;
+        html += `<div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500">Skipped</div><div class="text-2xl font-bold text-yellow-600">${skipped}</div></div>`;
+        html += '</div>';
+
+        // Iterations table
+        if (iters.length > 0) {
+          html += '<h4 class="font-semibold text-gray-900 mb-2">Iteraciones</h4>';
+          html += '<table class="min-w-full text-sm"><thead class="bg-gray-50"><tr>';
+          html += '<th class="px-2 py-1 text-left">#</th>';
+          html += '<th class="px-2 py-1 text-left">as_of</th>';
+          html += '<th class="px-2 py-1 text-left">Decisión</th>';
+          html += '<th class="px-2 py-1 text-left">Outcome</th>';
+          html += '<th class="px-2 py-1 text-left">P&L</th>';
+          html += '<th class="px-2 py-1 text-left">P&L %</th>';
+          html += '<th class="px-2 py-1 text-left">Bars</th>';
+          html += '</tr></thead><tbody>';
+          for (const it of iters) {
+            const pnlVal = it.pnl;
+            const pnlClr = pnlVal > 0 ? 'text-green-600' : pnlVal < 0 ? 'text-red-600' : 'text-gray-500';
+            html += '<tr class="border-t border-gray-200">';
+            html += `<td class="px-2 py-1">${it.iteration_index}</td>`;
+            html += `<td class="px-2 py-1">${formatDate(it.as_of)}</td>`;
+            html += `<td class="px-2 py-1">${it.decision}${it.confidence ? ' <span class="text-xs text-gray-500">(' + it.confidence + ')</span>' : ''}</td>`;
+            html += `<td class="px-2 py-1">${outcomeToBadge(it.outcome)}</td>`;
+            html += `<td class="px-2 py-1 ${pnlClr}">${pnlVal !== null && pnlVal !== undefined ? formatUsd(pnlVal, 2) : '—'}</td>`;
+            html += `<td class="px-2 py-1 ${pnlClr}">${it.pnl_pct !== null && it.pnl_pct !== undefined ? formatPercent(it.pnl_pct, 2) : '—'}</td>`;
+            html += `<td class="px-2 py-1">${it.bars_traversed ?? '—'}</td>`;
+            html += '</tr>';
+          }
+          html += '</tbody></table>';
+        } else {
+          html += '<p class="text-sm text-gray-500 italic">No hay iteraciones todavía. El run puede estar en <code>queued</code> o <code>running</code>.</p>';
+        }
+
+        runDetailContent.innerHTML = html;
+        runDetail.classList.remove('hidden');
+        runDetail.scrollIntoView({ behavior: 'smooth' });
+      } catch (e: any) {
+        runDetailContent.innerHTML = `<p class="text-sm text-red-600">Error: ${e.message}</p>`;
+        runDetail.classList.remove('hidden');
+      }
+    }
+
+    // Initial load
+    refreshEstimate();
+    loadRuns();
+
+    // Refresh estimate when form changes
+    for (const id of ['ticker', 'step_days', 'window_days', 'max_iterations']) {
+      const el = document.getElementById(id) as HTMLElement;
+      el.addEventListener('change', refreshEstimate);
+      el.addEventListener('input', refreshEstimate);
+    }
+
+    // Auto-refresh runs every 15s
+    setInterval(loadRuns, 15000);
+  </script>
+</Layout>
