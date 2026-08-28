@@ -75,6 +75,13 @@ function LinkExperience() {
     transition: { duration: 0.65, delay },
   });
 
+  const fade = (delay = 0) => ({
+    initial: { opacity: 0 },
+    whileInView: { opacity: 1 },
+    viewport: { once: true, amount: 0.25 },
+    transition: { duration: 0.65, delay },
+  });
+
   return (
     <div className="link-experience">
       <section className="link-flow-section" id="link-flow" aria-labelledby="link-flow-title">
@@ -104,10 +111,10 @@ function LinkExperience() {
 
           <div className="link-flow-canvas">
             <svg className="link-flow-lines" viewBox="0 0 1100 620" preserveAspectRatio="none" aria-hidden="true">
-              <path className="link-flow-line link-flow-line-macro" d="M255 190C350 190 364 286 468 310" />
-              <path className="link-flow-line link-flow-line-micro" d="M255 450C350 450 364 334 468 310" />
-              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 210 845 210" />
-              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 410 845 410" />
+              <path className="link-flow-line link-flow-line-macro" d="M297 206C350 206 364 286 468 310" />
+              <path className="link-flow-line link-flow-line-micro" d="M297 483C350 483 364 334 468 310" />
+              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 139 803 139" />
+              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 279 803 279" />
               <circle className="link-flow-node" cx="468" cy="310" r="4" />
               <circle className="link-flow-node" cx="632" cy="310" r="4" />
             </svg>
@@ -156,7 +163,7 @@ function LinkExperience() {
 
             <div className="link-flow-column link-flow-outputs">
               <div className="link-column-header"><span>03</span><span>CONTEXT</span></div>
-              <motion.article className="link-output-card" {...reveal(0.5)}>
+              <motion.article className="link-output-card" {...fade(0.5)}>
                 <div className="link-output-mark">C</div>
                 <div>
                   <span>MEMORY LAYER</span>
@@ -164,7 +171,7 @@ function LinkExperience() {
                   <p>Guarda relaciones, temporalidad y memoria semántica.</p>
                 </div>
               </motion.article>
-              <motion.article className="link-output-card" {...reveal(0.6)}>
+              <motion.article className="link-output-card" {...fade(0.6)}>
                 <div className="link-output-mark link-output-mark-accent">O</div>
                 <div>
                   <span>INTELLIGENCE LAYER</span>
