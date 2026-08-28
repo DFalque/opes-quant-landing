@@ -3,6 +3,7 @@ import ServiceDetail from '../../components/ServiceDetail.tsx';
 import { landingServices } from '../../data/landing-services';
 import type { LandingService } from '../../data/landing-services';
 import detailStyles from '../../styles/service-detail.css?url';
+import linkStyles from '../../styles/link-detail.css?url';
 
 interface Props {
   service: LandingService;
@@ -25,6 +26,7 @@ const { service } = Astro.props as Props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={`${service.name}: ${service.copy}`} />
     <link rel="stylesheet" href={detailStyles} />
+    {service.slug === 'link' && <link rel="stylesheet" href={linkStyles} />}
     <title>{service.name} — OPES</title>
   </head>
   <body>

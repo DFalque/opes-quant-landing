@@ -44,6 +44,7 @@ body {
 .service-detail-theme-violet { --detail-accent: #9c7eff; --detail-orbit: #d8cbff; }
 .service-detail-theme-mint { --detail-accent: #4abf8e; --detail-orbit: #b9ebd8; }
 .service-detail-theme-line { --detail-accent: #777872; --detail-orbit: #e5e4de; }
+.service-detail-theme-coral { --detail-accent: #ee735e; --detail-orbit: #ffd0c5; }
 
 .service-detail-nav {
   position: relative;

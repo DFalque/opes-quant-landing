@@ -1,0 +1,6 @@
+[2026-08-28 11:00] Sesión #1
+- Worked on: F-LINK-001
+- Commit: not committed (user requested implementation without release)
+- Findings: Link tenía el detalle genérico centrado en brokers. El mapa de servicios ya separa Link Data de Link Execution. Se añadió una narrativa visual de fuentes macro/micro, enrichment y contexto downstream. El primer fallo de useState fue caché de Vite del dev server y desapareció tras reiniciar el proceso.
+- Eval result: PASS (desktop y mobile, sin overflow ni errores; diseño 4/5, originalidad 4/5, craft 4/5, funcionalidad 5/5)
+- Next: publicar cuando el usuario solicite el release

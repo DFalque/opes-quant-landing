@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-LINK-001",
+    "category": "visual",
+    "description": "La página de Link explica de forma visual cómo las fuentes macro, sectoriales y micro se convierten en contexto para OPES.",
+    "steps": [
+      "Navegar a /landing/link",
+      "Ver los dos canales de entrada MACRO / SECTOR y MICRO / EMPRESA",
+      "Ver la convergencia en el motor de enrichment de Link",
+      "Ver las salidas hacia Cortex, Atlas, Lens y OPES Intelligence",
+      "Comprobar que la experiencia sigue siendo legible en móvil"
+    ],
+    "passes": true
+  }
+]

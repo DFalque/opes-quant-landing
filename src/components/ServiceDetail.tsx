@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import type { LandingService } from '../data/landing-services';
 import { sitePath } from '../lib/site-path';
+import LinkExperience from './LinkExperience';
 
 interface Props {
   service: LandingService;
@@ -24,6 +25,7 @@ function ArrowLeft() {
 
 function ServiceDetail({ service }: Props) {
   const reduceMotion = useReducedMotion();
+  const isLink = service.slug === 'link';
 
   return (
     <div className={`service-detail-page service-detail-theme-${service.tone}`}>
@@ -49,7 +51,7 @@ function ServiceDetail({ service }: Props) {
             <h1 id="service-title">{service.name}</h1>
             <h2>{service.headline}</h2>
             <p>{service.detail}</p>
-            <a className="detail-cta" href="#what-it-does">Descubrir {service.name} <ArrowUpRight /></a>
+            <a className="detail-cta" href={isLink ? '#link-flow' : '#what-it-does'}>Descubrir {service.name} <ArrowUpRight /></a>
           </motion.div>
 
           <motion.div
@@ -67,27 +69,31 @@ function ServiceDetail({ service }: Props) {
           </motion.div>
         </section>
 
-        <section className="service-detail-points" id="what-it-does" aria-labelledby="points-title">
-          <div>
-            <span className="detail-section-index">WHAT IT BRINGS</span>
-            <h2 id="points-title">Una pieza<br /><em>del sistema.</em></h2>
-          </div>
-          <div className="detail-points-list">
-            {service.points.map((point, index) => (
-              <motion.div
-                className="detail-point"
-                key={point}
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.6 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <span>0{index + 1}</span>
-                <strong>{point}</strong>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+        {isLink ? (
+          <LinkExperience />
+        ) : (
+          <section className="service-detail-points" id="what-it-does" aria-labelledby="points-title">
+            <div>
+              <span className="detail-section-index">WHAT IT BRINGS</span>
+              <h2 id="points-title">Una pieza<br /><em>del sistema.</em></h2>
+            </div>
+            <div className="detail-points-list">
+              {service.points.map((point, index) => (
+                <motion.div
+                  className="detail-point"
+                  key={point}
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <span>0{index + 1}</span>
+                  <strong>{point}</strong>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="service-detail-next">
           <span className="detail-section-index">PART OF OPES</span>

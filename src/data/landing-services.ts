@@ -117,13 +117,13 @@ export const decisionLayer: LandingService = {
 export const linkService: LandingService = {
   slug: 'link',
   name: 'Link',
-  category: 'BROKER CONNECTION',
-  copy: 'La conexión entre una decisión de OPES y el mercado.',
+  category: 'WORLD CONTEXT LAYER',
+  copy: 'Convierte las señales del mundo en contexto que OPES puede entender.',
   mark: '↗',
   tone: 'coral',
-  headline: 'Del análisis a la acción.',
-  detail: 'Link es la capa que conecta OPES con los brokers para llevar una decisión autorizada al mercado. No decide: hace posible ejecutar.',
-  points: ['Conexión con brokers', 'Ejecución controlada', 'Una decisión, una acción'],
+  headline: 'El mundo produce ruido. Link encuentra el contexto.',
+  detail: 'Link reúne fuentes oficiales, research y señales de empresa; las contrasta, organiza y enriquece para que cada análisis empiece con una visión clara del mundo.',
+  points: ['Macro y sectores', 'Empresa y mercado', 'Contexto contrastado'],
 };
 
 export const landingServices = [...serviceModules, linkService, visionService, decisionLayer];
