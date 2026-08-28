@@ -103,13 +103,13 @@ function LinkExperience() {
           </div>
 
           <div className="link-flow-canvas">
-            <svg className="link-flow-lines" viewBox="0 0 1100 560" preserveAspectRatio="none" aria-hidden="true">
-              <path className="link-flow-line link-flow-line-macro" d="M255 168C350 168 364 258 468 280" />
-              <path className="link-flow-line link-flow-line-micro" d="M255 392C350 392 364 302 468 280" />
-              <path className="link-flow-line link-flow-line-output" d="M632 280C736 280 750 188 845 188" />
-              <path className="link-flow-line link-flow-line-output" d="M632 280C736 280 750 372 845 372" />
-              <circle className="link-flow-node" cx="468" cy="280" r="4" />
-              <circle className="link-flow-node" cx="632" cy="280" r="4" />
+            <svg className="link-flow-lines" viewBox="0 0 1100 620" preserveAspectRatio="none" aria-hidden="true">
+              <path className="link-flow-line link-flow-line-macro" d="M255 190C350 190 364 286 468 310" />
+              <path className="link-flow-line link-flow-line-micro" d="M255 450C350 450 364 334 468 310" />
+              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 210 845 210" />
+              <path className="link-flow-line link-flow-line-output" d="M632 310C736 310 750 410 845 410" />
+              <circle className="link-flow-node" cx="468" cy="310" r="4" />
+              <circle className="link-flow-node" cx="632" cy="310" r="4" />
             </svg>
 
             <div className="link-flow-column link-flow-inputs">

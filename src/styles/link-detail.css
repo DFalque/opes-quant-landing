@@ -132,7 +132,7 @@
 
 .link-flow-canvas {
   position: relative;
-  min-height: 560px;
+  min-height: 620px;
   background-image: linear-gradient(rgba(243, 242, 237, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(243, 242, 237, 0.035) 1px, transparent 1px);
   background-size: 58px 58px;
 }
@@ -251,10 +251,10 @@
 }
 
 .link-engine {
-  top: 50%;
-  left: 50%;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 160px);
   width: 320px;
-  transform: translate(-50%, -50%);
   text-align: center;
 }
 
@@ -263,12 +263,16 @@
   display: grid;
   width: 220px;
   height: 220px;
-  margin: 0 auto 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
   place-items: center;
   border: 1px solid rgba(238, 115, 94, 0.22);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(238, 115, 94, 0.17), transparent 61%);
   box-shadow: 0 0 90px rgba(238, 115, 94, 0.1);
+  transform: translate(-50%, -50%);
 }
 
 .link-engine-ring { position: absolute; border: 1px solid rgba(243, 242, 237, 0.22); border-radius: 50%; }
@@ -293,9 +297,9 @@
 .link-engine-spark-one { top: 11%; left: 31%; }
 .link-engine-spark-two { right: 12%; bottom: 26%; background: var(--link-lime); box-shadow: 0 0 15px var(--link-lime); }
 
-.link-engine-label { display: inline-flex; align-items: center; gap: 8px; color: var(--link-coral); }
+.link-engine-label { position: absolute; top: calc(50% + 137px); right: 0; left: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: var(--link-coral); }
 .link-engine-label i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
-.link-engine p { max-width: 250px; margin: 15px auto 0; color: #9da098; font-size: 12px; line-height: 1.55; }
+.link-engine p { position: absolute; top: calc(50% + 165px); right: 35px; left: 35px; max-width: none; margin: 0; color: #9da098; font-size: 12px; line-height: 1.55; }
 
 .link-output-card {
   display: grid;
@@ -440,6 +444,10 @@
   .link-flow-lines { display: none; }
   .link-flow-column,
   .link-engine { position: relative; inset: auto; width: auto; transform: none; }
+  .link-engine { height: auto; }
+  .link-engine-orbit { position: relative; top: auto; left: auto; transform: none; }
+  .link-engine-label,
+  .link-engine p { position: static; }
   .link-flow-inputs,
   .link-flow-outputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .link-flow-inputs .link-column-header,
