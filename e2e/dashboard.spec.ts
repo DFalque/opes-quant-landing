@@ -100,13 +100,13 @@ test.describe('static pages', () => {
 
   test('landing draft renders and its method is interactive', async ({ page }) => {
     await page.goto('/landing');
-    await expect(page.locator('h1', { hasText: 'Todos los mercados.' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Todo el contexto.' })).toBeVisible();
     await expect(page.locator('text=SESSION / DEMO')).toBeVisible();
 
     await page.getByRole('link', { name: 'El método' }).click();
     await expect(page).toHaveURL(/\/landing#metodo$/);
-    await page.getByRole('button', { name: 'Decidir' }).click();
-    await expect(page.locator('h3', { hasText: 'Todo converge en una dirección.' })).toBeVisible();
+    await page.getByRole('button', { name: 'Converger' }).click();
+    await expect(page.locator('h3', { hasText: 'Las lecturas se ponen a prueba.' })).toBeVisible();
 
     const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(horizontalOverflow).toBe(false);
@@ -147,7 +147,7 @@ test.describe('static pages', () => {
     await page.getByRole('link', { name: 'Saber más sobre Signal' }).click();
     await expect(page).toHaveURL(/\/landing\/signal$/);
     await expect(page.locator('h1', { hasText: 'Signal' })).toBeVisible();
-    await expect(page.getByText('Aprender del pasado para mirar hacia delante.')).toBeVisible();
+    await expect(page.getByText('Medir antes de creer.')).toBeVisible();
   });
 });
 

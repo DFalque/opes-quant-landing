@@ -391,11 +391,13 @@ body {
 .service-card-coral { background: #ff8d83; }
 .service-topline { display: flex; align-items: center; justify-content: space-between; }
 .service-mark { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-family: 'DM Mono', ui-monospace, monospace; font-size: 10px; }
-.service-category, .service-index, .core-kicker, .link-layer-status { font-family: 'DM Mono', ui-monospace, monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+.service-category, .service-state, .service-index, .core-kicker, .link-layer-status { font-family: 'DM Mono', ui-monospace, monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
 .service-category { opacity: 0.58; }
 .service-card h3 { margin: 40px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.07em; line-height: 0.98; }
-.service-card p { max-width: 250px; margin: auto 0 0; color: rgba(8,8,8,0.66); font-size: 12px; line-height: 1.55; }
+.service-card p { max-width: 250px; margin: auto 0 29px; color: rgba(8,8,8,0.66); font-size: 12px; line-height: 1.55; }
 .service-card-dark p { color: rgba(243,242,237,0.64); }
+.service-state { position: absolute; bottom: 23px; left: 23px; color: rgba(8,8,8,0.5); }
+.service-card-dark .service-state { color: rgba(243,242,237,0.58); }
 .service-index { position: absolute; right: 23px; bottom: 23px; opacity: 0.45; }
 .intelligence-core { display: grid; grid-template-columns: 0.85fr 1.25fr 1fr; gap: 5vw; align-items: center; margin-top: 12px; padding: 34px 29px; background: var(--landing-ink); color: var(--landing-paper); }
 .intelligence-core-link { text-decoration: none; transition: background-color 180ms ease, transform 180ms ease; }
