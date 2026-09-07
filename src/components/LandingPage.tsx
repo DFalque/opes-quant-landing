@@ -12,34 +12,34 @@ import { sitePath } from '../lib/site-path';
 const processSteps = [
   {
     number: '01',
-    label: 'Recoger',
-    title: 'Todo empieza por las fuentes.',
-    copy: 'Los datos llegan con identidad, momento, proveedor y procedencia antes de convertirse en evidencia.',
+    label: 'Leer',
+    title: 'Todo empieza por el contexto.',
+    copy: 'Antes de mirar una señal aislada, OPES reúne lo que rodea a cada mercado y activo.',
   },
   {
     number: '02',
     label: 'Entender',
-    title: 'Cada dato encuentra su escala.',
-    copy: 'Macro, sector, empresa, precio y opciones responden preguntas distintas. OPES no los mezcla sin contexto.',
+    title: 'Cada dato encuentra su lugar.',
+    copy: 'Macro, empresa, precio y opciones responden preguntas distintas. OPES los conecta sin perder su significado.',
   },
   {
     number: '03',
-    label: 'Converger',
-    title: 'Las lecturas se ponen a prueba.',
-    copy: 'La convergencia reúne evidencia y contradicciones para producir una recomendación auditable, no una orden automática.',
+    label: 'Decidir',
+    title: 'Todo converge en una dirección.',
+    copy: 'Las distintas lecturas se convierten en una visión clara del siguiente paso: comprar, vender o esperar.',
   },
   {
     number: '04',
-    label: 'Revisar',
-    title: 'Lo ocurrido queda disponible.',
-    copy: 'La memoria y el feedback forman una capa de revisión para entender qué funcionó, qué falló y qué queda por demostrar.',
+    label: 'Aprender',
+    title: 'El sistema mejora con cada sesión.',
+    copy: 'Cortex y Reflex conservan lo ocurrido para que cada análisis parta de más contexto y experiencia.',
   },
 ];
 
 const metrics = [
-  { value: '10', label: 'servicios en el ecosistema' },
-  { value: '3', label: 'escalas de contexto' },
-  { value: 'READ-ONLY', label: 'frontera analítica actual' },
+  { value: '10', label: 'inteligencias especializadas' },
+  { value: '5', label: 'perspectivas conectadas' },
+  { value: '1', label: 'lectura para decidir mejor' },
 ];
 
 function ArrowUpRight() {
@@ -132,7 +132,7 @@ function LandingPage() {
             >
               Todo el contexto.
               <br />
-              <em>Una forma de entenderlo.</em>
+              <em>Una forma más clara de decidir.</em>
             </motion.h1>
             <motion.p
               className="hero-lede"
@@ -140,8 +140,8 @@ function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.42 }}
             >
-              OPES conecta datos, análisis, memoria y criterio para separar lo que ocurre,
-              lo que importa y lo que todavía no está claro.
+              OPES reúne macro, empresas, precio, opciones y memoria para ayudarte a ver
+              lo que importa antes de decidir.
             </motion.p>
             <motion.div
               className="hero-actions"
@@ -153,7 +153,7 @@ function LandingPage() {
                 Entender el sistema <ArrowDown />
               </a>
               <a className="text-link" href="#criterio">
-                No es una señal. Es el proceso <ArrowUpRight />
+                Más contexto. Mejores decisiones <ArrowUpRight />
               </a>
             </motion.div>
           </motion.div>
@@ -170,7 +170,7 @@ function LandingPage() {
             </div>
             <div className="signal-heading">
               <span>US:AAPL</span>
-              <strong>ANALYSIS ONLY</strong>
+              <strong>MARKET CONTEXT</strong>
             </div>
             <div className="signal-chart" aria-label="Gráfico abstracto de contexto de mercado">
               <svg viewBox="0 0 520 190" role="img" aria-hidden="true" preserveAspectRatio="none">
@@ -194,8 +194,8 @@ function LandingPage() {
             </div>
             <div className="signal-footer">
               <span><small>SCOPE</small><b>US:AAPL</b></span>
-              <span><small>MODE</small><b className="signal-safe">SHADOW</b></span>
-              <span><small>OUTPUT</small><b>REVIEW</b></span>
+              <span><small>CONTEXT</small><b className="signal-safe">CONNECTED</b></span>
+              <span><small>NEXT STEP</small><b>DECIDE</b></span>
             </div>
           </motion.div>
 
@@ -226,7 +226,7 @@ function LandingPage() {
           >
             No es otro bot.
             <br />
-            Es una forma de <span>pensar el mercado.</span>
+            Es una forma de <span>entender el mercado.</span>
           </motion.h2>
           <motion.p
             className="statement-copy"
@@ -236,8 +236,8 @@ function LandingPage() {
             transition={{ duration: 0.8, delay: 0.12 }}
             variants={reveal}
           >
-            OPES separa cada frontera, conserva la evidencia y las reúne cuando es
-            necesario. Para saber qué está pasando, qué importa y qué falta por validar.
+            OPES conecta macro, empresas, precio, opciones y memoria en una misma visión.
+            Para saber qué está pasando, qué importa y cuál puede ser el siguiente paso.
           </motion.p>
 
           <div className="metric-row">
@@ -261,8 +261,8 @@ function LandingPage() {
         <section className="services-section" id="servicios" aria-labelledby="services-title">
           <div className="services-heading">
             <span className="section-index">02 / THE NETWORK</span>
-            <h2 id="services-title">Una red de inteligencias.<br /><span>Una lectura auditable.</span></h2>
-            <p>Servicios independientes. Contratos claros. Una lectura que puede auditarse.</p>
+            <h2 id="services-title">Una red de inteligencias.<br /><span>Una visión más clara.</span></h2>
+            <p>Cada inteligencia responde una pregunta distinta. Juntas convierten ruido en contexto.</p>
           </div>
           <div className="services-grid">
             {[...serviceModules, linkService, visionService].map((service, index) => (
@@ -284,7 +284,6 @@ function LandingPage() {
                 </div>
                 <h3>{service.name}</h3>
                 <p>{service.copy}</p>
-                <span className="service-state">{service.state}</span>
                 <span className="service-index">0{index + 1}</span>
               </motion.a>
             ))}
@@ -299,39 +298,39 @@ function LandingPage() {
             variants={reveal}
           >
             <div>
-              <span className="core-kicker">CONVERGENCE / 10</span>
+              <span className="core-kicker">THE DECISION LAYER / 10</span>
               <h3>{decisionLayer.name}</h3>
             </div>
-            <p>Aquí converge la evidencia: contexto, estrategia, contradicciones y el siguiente paso que todavía debe pasar por sus propios gates.</p>
-            <div className="core-status"><span><i /> EVIDENCE</span><span><i /> CONTRADICTIONS</span><span><i /> RECOMMENDATION</span></div>
+            <p>Aquí converge todo: la mejor lectura del contexto, la estrategia más adecuada y el siguiente paso que tiene sentido.</p>
+            <div className="core-status"><span><i /> CONTEXT</span><span><i /> STRATEGY</span><span><i /> NEXT STEP</span></div>
           </motion.a>
         </section>
 
         <section className="feature-section" aria-label="Principios de OPES">
           <div className="feature-intro">
             <span className="section-index">03 / THE SYSTEM</span>
-            <h2>Todo el contexto.<br /><span>En una sola lectura.</span></h2>
+            <h2>Todo el mercado.<br /><span>En una sola mirada.</span></h2>
           </div>
           <div className="feature-grid">
             <motion.article className="feature-card feature-card-lime" whileHover={reduceMotion ? undefined : { y: -8 }} transition={{ type: 'spring', stiffness: 220, damping: 18 }}>
               <span className="feature-number">01</span>
               <div className="feature-icon icon-radar" aria-hidden="true"><i /><i /><i /></div>
-              <h3>Mira el<br />contexto.</h3>
-              <p>Macro, empresa, precio, derivados y memoria, cada uno en su frontera.</p>
+              <h3>Lo ve<br />todo.</h3>
+              <p>Macro, empresas, precio, opciones y memoria en una misma visión.</p>
               <a href="#servicios" aria-label="Descubrir el contexto completo"><ArrowUpRight /></a>
             </motion.article>
             <motion.article className="feature-card feature-card-white" whileHover={reduceMotion ? undefined : { y: -8 }} transition={{ type: 'spring', stiffness: 220, damping: 18 }}>
               <span className="feature-number">02</span>
               <div className="feature-icon icon-layers" aria-hidden="true"><i /><i /><i /></div>
-              <h3>Lo hace<br />trazable.</h3>
-              <p>Cada lectura conserva origen, momento, evidencia y grado de confianza.</p>
+              <h3>Lo entiende<br />mejor.</h3>
+              <p>Conecta miles de datos y señales para que puedas comprender qué importa.</p>
               <a href="#metodo" aria-label="Descubrir el análisis reproducible"><ArrowUpRight /></a>
             </motion.article>
             <motion.article className="feature-card feature-card-blue" whileHover={reduceMotion ? undefined : { y: -8 }} transition={{ type: 'spring', stiffness: 220, damping: 18 }}>
               <span className="feature-number">03</span>
               <div className="feature-icon icon-lock" aria-hidden="true"><i /></div>
-              <h3>No fuerza<br />la orden.</h3>
-              <p>La capa analítica termina en una recomendación; riesgo y ejecución tienen sus propios gates.</p>
+              <h3>Decide<br />con criterio.</h3>
+              <p>Cuando las piezas encajan, tienes una lectura clara del siguiente paso.</p>
               <a href="#contacto" aria-label="Descubrir la decisión protegida"><ArrowUpRight /></a>
             </motion.article>
           </div>
@@ -340,8 +339,8 @@ function LandingPage() {
         <section className="method-section" id="metodo" aria-labelledby="method-title">
           <div className="method-heading">
             <span className="section-index">04 / CÓMO TRABAJA</span>
-            <h2 id="method-title">De las fuentes.<br /><em>A la evidencia.</em></h2>
-            <p>OPES convierte la complejidad del mercado en una lectura que puede revisarse.</p>
+            <h2 id="method-title">De la información.<br /><em>A la acción.</em></h2>
+            <p>OPES convierte la complejidad del mercado en un siguiente paso claro.</p>
           </div>
           <div className="method-list">
             {processSteps.map((step, index) => (

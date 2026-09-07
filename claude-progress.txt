@@ -4,3 +4,10 @@
 - Findings: Link tenía el detalle genérico centrado en brokers. El mapa de servicios ya separa Link Data de Link Execution. Se añadió una narrativa visual de fuentes macro/micro, enrichment y contexto downstream. El primer fallo de useState fue caché de Vite del dev server y desapareció tras reiniciar el proceso.
 - Eval result: PASS (desktop y mobile, sin overflow ni errores; diseño 4/5, originalidad 4/5, craft 4/5, funcionalidad 5/5)
 - Next: publicar cuando el usuario solicite el release
+
+[2026-09-07 22:18] Sesión #2
+- Worked on: F-MARKETING-001
+- Commit: marketing-language changeset
+- Findings: Los estados `READ-ONLY`, `SHADOW` y `BOOTSTRAP` eran datos internos y no correspondían a una landing comercial. Se conservaron las features recientes y se tradujeron a beneficios de producto. Existe trabajo concurrente no trackeado para F-ARCH-001; no se incluyó en este cambio.
+- Eval result: PASS (diseño 5/5, originalidad 4/5, craft 4/5, funcionalidad 5/5; desktop/mobile, 10 rutas, sin overflow ni errores)
+- Next: publicar el copy de marketing y evaluar por separado F-ARCH-001

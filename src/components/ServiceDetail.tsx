@@ -51,7 +51,7 @@ function ServiceDetail({ service }: Props) {
             <h1 id="service-title">{service.name}</h1>
             <h2>{service.headline}</h2>
             <p>{service.detail}</p>
-            <a className="detail-cta" href={isLink ? '#link-flow' : '#what-it-does'}>Descubrir {service.name} <ArrowUpRight /></a>
+            <a className="detail-cta" href={isLink ? '#link-flow' : '#what-it-does'}>Ver cómo funciona <ArrowUpRight /></a>
           </motion.div>
 
           <motion.div
@@ -75,7 +75,7 @@ function ServiceDetail({ service }: Props) {
           <section className="service-detail-points" id="what-it-does" aria-labelledby="points-title">
             <div>
               <span className="detail-section-index">WHAT IT BRINGS</span>
-              <h2 id="points-title">Una pieza<br /><em>del sistema.</em></h2>
+              <h2 id="points-title">Una inteligencia.<br /><em>Un propósito.</em></h2>
             </div>
             <div className="detail-points-list">
               {service.points.map((point, index) => (
@@ -97,8 +97,8 @@ function ServiceDetail({ service }: Props) {
 
         <section className="service-detail-next">
           <span className="detail-section-index">PART OF OPES</span>
-          <p>Una lectura no es una decisión. OPES las reúne todas.</p>
-          <a className="detail-back-link" href={sitePath('/#servicios')}>Ver todos los servicios <ArrowUpRight /></a>
+          <p>Cada inteligencia aporta una perspectiva. Juntas convierten información en claridad.</p>
+          <a className="detail-back-link" href={sitePath('/#servicios')}>Ver todas las inteligencias <ArrowUpRight /></a>
         </section>
       </main>
 

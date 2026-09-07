@@ -105,8 +105,8 @@ test.describe('static pages', () => {
 
     await page.getByRole('link', { name: 'El método' }).click();
     await expect(page).toHaveURL(/\/landing#metodo$/);
-    await page.getByRole('button', { name: 'Converger' }).click();
-    await expect(page.locator('h3', { hasText: 'Las lecturas se ponen a prueba.' })).toBeVisible();
+    await page.getByRole('button', { name: 'Decidir' }).click();
+    await expect(page.locator('h3', { hasText: 'Todo converge en una dirección.' })).toBeVisible();
 
     const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(horizontalOverflow).toBe(false);

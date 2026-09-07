@@ -11,5 +11,19 @@
       "Comprobar que la experiencia sigue siendo legible en móvil"
     ],
     "passes": true
+  },
+  {
+    "id": "F-MARKETING-001",
+    "category": "content",
+    "description": "La landing comunica OPES como un producto de inteligencia de mercado vendible, usando las features recientes sin exponer estados internos de runtime.",
+    "steps": [
+      "Navegar a /",
+      "Verificar el hero, métricas, principios y método con lenguaje comercial",
+      "Comprobar que no aparecen READ-ONLY, SHADOW, BOOTSTRAP ni ANALYSIS ONLY",
+      "Interactuar con el paso Decidir",
+      "Comprobar las diez rutas de detalle y la navegación móvil",
+      "Validar screenshots desktop/mobile sin overflow"
+    ],
+    "passes": true
   }
 ]
