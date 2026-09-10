@@ -24,6 +24,33 @@
       "Comprobar las diez rutas de detalle y la navegación móvil",
       "Validar screenshots desktop/mobile sin overflow"
     ],
+    "passes": false
+  },
+  {
+    "id": "F-ARCH-001",
+    "category": "functional",
+    "description": "La landing ofrece una vista pública de arquitectura con un mapa Archify interactivo y una explicación comprensible del flujo OPES.",
+    "steps": [
+      "Navegar a /architecture",
+      "Ver el mapa Archify embebido con fuentes, inteligencias, convergencia y revisión humana",
+      "Abrir el mapa completo en una pestaña independiente",
+      "Ver las tres etapas de lectura y el glosario público de servicios",
+      "Comprobar que la portada enlaza a la vista de arquitectura",
+      "Comprobar que la experiencia no genera overflow horizontal en móvil"
+    ],
+    "passes": true
+  },
+  {
+    "id": "F-DOC-001",
+    "category": "functional",
+    "description": "La landing ofrece documentación pública para consumir los endpoints de Wave sin exponer credenciales.",
+    "steps": [
+      "Navegar a /documentation",
+      "Ver el endpoint compacto, autenticación, request mínima, cURL, respuesta y errores",
+      "Comprobar que no aparece ningún token real",
+      "Comprobar la navegación desde la portada y arquitectura",
+      "Validar screenshots desktop/mobile sin overflow"
+    ],
     "passes": true
   }
 ]

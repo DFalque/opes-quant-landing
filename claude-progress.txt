@@ -5,9 +5,23 @@
 - Eval result: PASS (desktop y mobile, sin overflow ni errores; diseño 4/5, originalidad 4/5, craft 4/5, funcionalidad 5/5)
 - Next: publicar cuando el usuario solicite el release
 
+[2026-09-07 22:35] Sesión #2
+- Worked on: F-ARCH-001
+- Commit: not committed
+- Findings: Se añadió una ruta pública `/architecture` con un artefacto Archify sanitizado, mapa embebido en modo presentación clara, explicación en tres etapas y glosario de diez servicios. La portada mantiene el lenguaje de marketing y enlaza el recorrido técnico sin mezclarlo con el hero.
+- Eval result: PASS funcional (Playwright 16/16; diseño 4/5, originalidad 5/5, craft 4/5, funcionalidad 5/5; sin overflow desktop/mobile ni errores de consola). Archify determinista 9/9; `visual-check` no completó por timeout de Chrome `Target.getTargets`.
+- Next: publicar cuando el usuario solicite el release
+
 [2026-09-07 22:18] Sesión #2
 - Worked on: F-MARKETING-001
 - Commit: marketing-language changeset
 - Findings: Los estados `READ-ONLY`, `SHADOW` y `BOOTSTRAP` eran datos internos y no correspondían a una landing comercial. Se conservaron las features recientes y se tradujeron a beneficios de producto. Existe trabajo concurrente no trackeado para F-ARCH-001; no se incluyó en este cambio.
 - Eval result: PASS (diseño 5/5, originalidad 4/5, craft 4/5, funcionalidad 5/5; desktop/mobile, 10 rutas, sin overflow ni errores)
 - Next: publicar el copy de marketing y evaluar por separado F-ARCH-001
+
+[2026-09-10 14:59] Sesión #3
+- Worked on: F-DOC-001
+- Commit: not committed
+- Findings: Se añadió `/documentation` con el contrato público de Wave, quickstart cURL/Bruno, request/response, errores y límites read-only. La documentación no contiene tokens reales. El harness E2E histórico no arranca porque `playwright.config.ts` referencia un `../backend` inexistente; la verificación Playwright directa contra Astro sí pasa.
+- Eval result: PASS (Playwright desktop/mobile, navegación portada/arquitectura, copy buttons, sin overflow ni errores; calidad 5/5, originalidad 4/5, craft 5/5, funcionalidad 5/5)
+- Next: publicar cuando el usuario solicite el release

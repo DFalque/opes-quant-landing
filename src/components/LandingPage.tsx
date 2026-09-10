@@ -85,7 +85,9 @@ function LandingPage() {
 
         <div id="landing-links" className={`landing-links ${menuOpen ? 'is-open' : ''}`}>
           <a href="#sistema" onClick={() => setMenuOpen(false)}>El sistema</a>
-          <a href="#metodo" onClick={() => setMenuOpen(false)}>El método</a>
+           <a href={sitePath('/architecture')} onClick={() => setMenuOpen(false)}>Arquitectura</a>
+           <a href={sitePath('/documentation')} onClick={() => setMenuOpen(false)}>Documentación</a>
+           <a href="#metodo" onClick={() => setMenuOpen(false)}>El método</a>
           <a href="#criterio" onClick={() => setMenuOpen(false)}>Criterio</a>
         </div>
 
@@ -152,8 +154,8 @@ function LandingPage() {
               <a className="button button-light" href="#sistema">
                 Entender el sistema <ArrowDown />
               </a>
-              <a className="text-link" href="#criterio">
-                Más contexto. Mejores decisiones <ArrowUpRight />
+              <a className="text-link" href={sitePath('/architecture')}>
+                Ver cómo funciona <ArrowUpRight />
               </a>
             </motion.div>
           </motion.div>
@@ -306,9 +308,47 @@ function LandingPage() {
           </motion.a>
         </section>
 
+        <section className="architecture-teaser" id="arquitectura" aria-labelledby="architecture-teaser-title">
+          <motion.div
+            className="architecture-teaser-copy"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.35 }}
+            variants={reveal}
+          >
+            <span className="section-index">03 / MAPA PÚBLICO</span>
+            <h2 id="architecture-teaser-title">Entender la red.<br /><span>Sin perderse en ella.</span></h2>
+            <p>
+              Una vista técnica, pero humana: qué hace cada inteligencia, cómo circula el contexto
+              y por qué una lectura no se convierte automáticamente en una orden.
+            </p>
+            <a className="button button-dark" href={sitePath('/architecture')}>
+              Explorar arquitectura <ArrowUpRight />
+            </a>
+          </motion.div>
+          <motion.div
+            className="architecture-teaser-visual"
+            initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.75 }}
+            aria-hidden="true"
+          >
+            <div className="teaser-orbit teaser-orbit-one" />
+            <div className="teaser-orbit teaser-orbit-two" />
+            <span className="teaser-route teaser-route-one" />
+            <span className="teaser-route teaser-route-two" />
+            <span className="teaser-route teaser-route-three" />
+            <span className="teaser-node teaser-node-source">FUENTES</span>
+            <span className="teaser-node teaser-node-link">LINK</span>
+            <span className="teaser-node teaser-node-core">INTELLIGENCE</span>
+            <span className="teaser-node teaser-node-review">REVISIÓN</span>
+          </motion.div>
+        </section>
+
         <section className="feature-section" aria-label="Principios de OPES">
           <div className="feature-intro">
-            <span className="section-index">03 / THE SYSTEM</span>
+            <span className="section-index">04 / THE SYSTEM</span>
             <h2>Todo el mercado.<br /><span>En una sola mirada.</span></h2>
           </div>
           <div className="feature-grid">
@@ -338,7 +378,7 @@ function LandingPage() {
 
         <section className="method-section" id="metodo" aria-labelledby="method-title">
           <div className="method-heading">
-            <span className="section-index">04 / CÓMO TRABAJA</span>
+            <span className="section-index">05 / CÓMO TRABAJA</span>
             <h2 id="method-title">De la información.<br /><em>A la acción.</em></h2>
             <p>OPES convierte la complejidad del mercado en un siguiente paso claro.</p>
           </div>
@@ -373,7 +413,7 @@ function LandingPage() {
         <section className="principle-section" id="criterio" aria-labelledby="principle-title">
           <div className="principle-mark" aria-hidden="true"><span>O</span></div>
           <div className="principle-content">
-            <span className="section-index">05 / EL PRINCIPIO</span>
+            <span className="section-index">06 / EL PRINCIPIO</span>
             <h2 id="principle-title">La mejor decisión<br />no siempre es <em>comprar.</em></h2>
             <p>OPES también sabe esperar cuando el mercado todavía no está claro.</p>
             <a className="button button-dark" href="#contacto">Descubrir OPES <ArrowUpRight /></a>
@@ -382,7 +422,7 @@ function LandingPage() {
 
         <section className="contact-section" id="contacto" aria-labelledby="contact-title">
           <div className="contact-line" />
-          <span className="section-index">06 / EL PRODUCTO</span>
+          <span className="section-index">07 / EL PRODUCTO</span>
           <h2 id="contact-title">El mercado es complejo.<br /><em>La decisión no tiene por qué serlo.</em></h2>
           <a className="contact-link" href="#sistema">Descubrir OPES <ArrowUpRight /></a>
         </section>

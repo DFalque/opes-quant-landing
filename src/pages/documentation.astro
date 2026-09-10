@@ -1,0 +1,214 @@
+---
+import documentationStyles from '../styles/documentation.css?url';
+import { sitePath } from '../lib/site-path';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Documentación pública para consumir los endpoints de OPES Wave."
+    />
+    <link rel="stylesheet" href={documentationStyles} />
+    <title>Documentación API — OPES Wave</title>
+  </head>
+  <body>
+    <div class="docs-page">
+      <header class="docs-hero">
+        <nav class="docs-nav" aria-label="Navegación de documentación">
+          <a class="docs-brand" href={sitePath('/')} aria-label="Volver a OPES">
+            <span class="docs-brand-orbit" aria-hidden="true"><span /></span>
+            <span>opes</span>
+          </a>
+          <div class="docs-nav-links">
+            <a href={sitePath('/architecture')}>Arquitectura</a>
+            <a href={sitePath('/')}>Volver a OPES</a>
+          </div>
+        </nav>
+
+        <div class="docs-hero-grid" aria-hidden="true" />
+        <div class="docs-hero-glow" aria-hidden="true" />
+        <div class="docs-hero-inner">
+          <div>
+            <p class="docs-eyebrow">OPES / PUBLIC API DOCUMENTATION</p>
+            <h1>Una interfaz.<br /><em>Dos campos.</em></h1>
+            <p class="docs-hero-copy">
+              La forma más sencilla de pedir una lectura de mercado a Wave. Tú indicas el
+              mercado y el activo; OPES se ocupa del contexto.
+            </p>
+          </div>
+          <aside class="docs-hero-aside" aria-label="Estado de la API">
+            <span class="docs-aside-line" />
+            <span class="docs-aside-label">CURRENT RELEASE</span>
+            <strong>WAVE / 0.4.0</strong>
+            <span class="docs-aside-status"><i /> API DISPONIBLE</span>
+          </aside>
+        </div>
+      </header>
+
+      <main class="docs-main">
+        <aside class="docs-index" aria-label="Índice de documentación">
+          <p>EN ESTA PÁGINA</p>
+          <a href="#quickstart">01 / Empezar</a>
+          <a href="#request">02 / Request</a>
+          <a href="#response">03 / Response</a>
+          <a href="#errors">04 / Errores</a>
+          <a href="#boundary">05 / Límites</a>
+        </aside>
+
+        <div class="docs-content">
+          <section class="docs-intro-section" id="quickstart" aria-labelledby="quickstart-title">
+            <div class="docs-section-kicker"><span>01</span><span>EMPEZAR</span></div>
+            <div class="docs-intro-grid">
+              <div>
+                <h2 id="quickstart-title">Pide una lectura<br /><em>sin preparar los datos.</em></h2>
+              </div>
+              <div class="docs-intro-copy">
+                <p>
+                  Wave recibe la identidad del instrumento y obtiene internamente el precio y
+                  las velas a través de Link. No necesitas recopilar OHLCV, calcular un timestamp
+                  ni construir un payload de dominio.
+                </p>
+                <div class="docs-endpoint-chip">
+                  <span>POST</span>
+                  <code>/api/wave/analyze</code>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="docs-panel-section" id="request" aria-labelledby="request-title">
+            <div class="docs-section-kicker"><span>02</span><span>REQUEST</span></div>
+            <div class="docs-panel-heading">
+              <div>
+                <h2 id="request-title">La request mínima.</h2>
+                <p>Solo dos campos. Los nombres de mercado y ticker se normalizan a mayúsculas.</p>
+              </div>
+              <span class="docs-required">AUTH / BEARER REQUIRED</span>
+            </div>
+
+            <div class="docs-code-block">
+              <div class="docs-code-topline"><span>JSON / application</span><button type="button" data-copy="request-json">Copiar</button></div>
+              <pre id="request-json"><code>&#123;
+  &quot;market&quot;: &quot;US&quot;,
+  &quot;ticker&quot;: &quot;AAPL&quot;
+&#125;</code></pre>
+            </div>
+
+            <div class="docs-callout docs-callout-lime">
+              <span class="docs-callout-mark">i</span>
+              <p><strong>No envíes precio ni velas.</strong> Wave genera `asOf`, fija `timeframe=1d` y delega el análisis a Link.</p>
+            </div>
+          </section>
+
+          <section class="docs-command-section" aria-labelledby="command-title">
+            <div class="docs-command-heading">
+              <div class="docs-section-kicker"><span>QUICK TEST</span><span>01 LINE</span></div>
+              <h2 id="command-title">Pruébalo desde<br /><em>cualquier terminal.</em></h2>
+            </div>
+            <div class="docs-code-block docs-code-dark">
+              <div class="docs-code-topline"><span>cURL / HTTPS</span><button type="button" data-copy="curl-command">Copiar</button></div>
+              <pre id="curl-command"><code>curl -X POST &#92;
+  https://opes-quant.82-165-179-157.sslip.io/api/wave/analyze &#92;
+  -H "Authorization: Bearer $WAVE_DOMAIN_ACCESS_TOKEN" &#92;
+  -H "Content-Type: application/json" &#92;
+  -d '&#123;&quot;market&quot;:&quot;US&quot;,&quot;ticker&quot;:&quot;AAPL&quot;&#125;'</code></pre>
+            </div>
+            <p class="docs-inline-note">En Bruno: usa el environment `Local`, guarda el token como variable y envía la misma request.</p>
+          </section>
+
+          <section class="docs-response-section" id="response" aria-labelledby="response-title">
+            <div class="docs-section-kicker"><span>03</span><span>RESPONSE</span></div>
+            <div class="docs-panel-heading">
+              <div>
+                <h2 id="response-title">Una respuesta<br /><em>con contexto.</em></h2>
+                <p>La respuesta completa incluye evidencia técnica, provenance y estado temporal.</p>
+              </div>
+              <span class="docs-http-status">200 / PARTIAL</span>
+            </div>
+            <div class="docs-response-grid">
+              <div class="docs-code-block">
+                <div class="docs-code-topline"><span>JSON / excerpt</span><span>READ-ONLY</span></div>
+                <pre><code>&#123;
+  &quot;status&quot;: &quot;partial&quot;,
+  &quot;version&quot;: &quot;wave-analysis-v2&quot;,
+  &quot;instrument&quot;: &#123;
+    &quot;market&quot;: &quot;US&quot;,
+    &quot;symbol&quot;: &quot;AAPL&quot;,
+    &quot;timeframe&quot;: &quot;1d&quot;,
+    &quot;horizon&quot;: &quot;short&quot;
+  &#125;,
+  &quot;dataContext&quot;: &#123;
+    &quot;pitStatus&quot;: &quot;UNVERIFIED&quot;
+  &#125;,
+  &quot;executionEligible&quot;: false,
+  &quot;ordersCreated&quot;: 0
+&#125;</code></pre>
+              </div>
+              <div class="docs-response-notes">
+                <div><span>STATUS</span><strong>partial</strong><p>Hay datos válidos, pero alguna condición temporal permanece degradada.</p></div>
+                <div><span>PROVENANCE</span><strong>UNVERIFIED</strong><p>La disponibilidad histórica no se presenta como evidencia PIT verificada.</p></div>
+                <div><span>EXECUTION</span><strong>0 ORDERS</strong><p>La API produce lectura y evidencia, nunca órdenes de broker.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="docs-errors-section" id="errors" aria-labelledby="errors-title">
+            <div class="docs-section-kicker"><span>04</span><span>ERRORES</span></div>
+            <div class="docs-errors-heading">
+              <h2 id="errors-title">Si algo falla,<br /><em>lo sabrás.</em></h2>
+              <p>Wave no disfraza un bloqueo de análisis válido ni convierte una respuesta parcial en permiso operativo.</p>
+            </div>
+            <div class="docs-error-list">
+              <div><strong>400</strong><span>JSON inválido o más campos de los permitidos.</span><code>invalid-json / invalid-body</code></div>
+              <div><strong>401</strong><span>Falta el Bearer o no coincide con la API.</span><code>unauthorized</code></div>
+              <div><strong>422</strong><span>Mercado o ticker no válidos para el contrato.</span><code>invalid-public-analysis-request</code></div>
+              <div><strong>502 / 503</strong><span>Link o el análisis de dominio no están disponibles.</span><code>market-bars-unavailable</code></div>
+            </div>
+          </section>
+
+          <section class="docs-boundary-section" id="boundary" aria-labelledby="boundary-title">
+            <div class="docs-boundary-mark" aria-hidden="true"><span>O</span></div>
+            <div>
+              <div class="docs-section-kicker"><span>05</span><span>EL LÍMITE</span></div>
+              <h2 id="boundary-title">Leer no es<br /><em>ejecutar.</em></h2>
+              <p>
+                Esta API está diseñada para explorar contexto de mercado. El resultado puede ser
+                `partial` y `UNVERIFIED`; aun así, nunca habilita una orden. La decisión, el riesgo,
+                el sizing y la ejecución viven fuera de esta frontera.
+              </p>
+              <a href={sitePath('/architecture')} class="docs-text-link">Ver la arquitectura pública <span>↗</span></a>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="docs-footer">
+        <span>opes / public api documentation</span>
+        <span>Wave v0.4.0 / 2026</span>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const targetId = button.dataset.copy;
+      const target = targetId ? document.getElementById(targetId) : null;
+      if (!target) return;
+      const text = target.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        const previous = button.textContent;
+        button.textContent = 'Copiado';
+        window.setTimeout(() => { button.textContent = previous; }, 1400);
+      } catch {
+        button.textContent = 'Selecciona el bloque';
+      }
+    });
+  });
+</script>

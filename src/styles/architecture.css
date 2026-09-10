@@ -1,0 +1,567 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --architecture-ink: #080808;
+  --architecture-paper: #f3f2ed;
+  --architecture-muted: #777872;
+  --architecture-line: rgba(8, 8, 8, 0.14);
+  --architecture-lime: #c5ff4a;
+  --architecture-blue: #b9d3ff;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--architecture-ink);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.architecture-page {
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--architecture-paper);
+  color: var(--architecture-ink);
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.architecture-page::before {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  content: '';
+}
+
+.architecture-nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 5vw;
+  color: #f4f3ee;
+}
+
+.architecture-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  text-decoration: none;
+}
+
+.architecture-brand-orbit {
+  position: relative;
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.architecture-brand-orbit::before,
+.architecture-brand-orbit::after {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.architecture-brand-orbit::before { top: -2px; left: 5px; }
+.architecture-brand-orbit::after { right: -2px; bottom: 4px; }
+.architecture-brand-orbit span { width: 5px; height: 5px; border-radius: 50%; background: var(--architecture-lime); }
+
+.architecture-nav-meta {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  color: #777872;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.architecture-nav-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #f4f3ee;
+  text-decoration: none;
+}
+
+.architecture-nav-meta a:hover { color: var(--architecture-lime); }
+
+.architecture-nav-meta svg,
+.architecture-map-caption svg,
+.architecture-text-link svg,
+.architecture-service-row > svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.3;
+}
+
+.architecture-hero {
+  position: relative;
+  display: flex;
+  min-height: min(820px, 100svh);
+  align-items: center;
+  padding: 150px 10vw 100px;
+  background: var(--architecture-ink);
+  color: #f4f3ee;
+}
+
+.architecture-hero-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image: linear-gradient(rgba(255,255,255,0.065) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.065) 1px, transparent 1px);
+  background-size: 86px 86px;
+  mask-image: linear-gradient(90deg, transparent, #000 17%, #000 75%, transparent);
+}
+
+.architecture-hero-glow {
+  position: absolute;
+  top: 12%;
+  right: 13%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197,255,74,0.14), transparent 68%);
+}
+
+.architecture-hero-copy {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 65vw);
+}
+
+.architecture-eyebrow,
+.architecture-section-index,
+.architecture-hero-note,
+.architecture-side-line,
+.architecture-map-bar,
+.architecture-map-caption,
+.architecture-stage-topline,
+.architecture-footer {
+  font-family: 'DM Mono', ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.architecture-eyebrow,
+.architecture-section-index {
+  color: var(--architecture-lime);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.architecture-hero h1 {
+  max-width: 900px;
+  margin: 30px 0 30px;
+  font-size: clamp(58px, 8.5vw, 130px);
+  font-weight: 600;
+  letter-spacing: -0.1em;
+  line-height: 0.88;
+}
+
+.architecture-hero h1 em,
+.architecture-section-heading h2 em,
+.architecture-boundary-section h2 em {
+  color: #777872;
+  font-style: normal;
+}
+
+.architecture-hero-copy > p {
+  max-width: 535px;
+  margin: 0;
+  color: #a2a29c;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.architecture-hero-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 35px;
+  color: #777872;
+  font-size: 9px;
+}
+
+.architecture-note-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--architecture-lime);
+  box-shadow: 0 0 10px var(--architecture-lime);
+}
+
+.architecture-hero-side {
+  position: absolute;
+  right: 10vw;
+  bottom: 12%;
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+  width: 165px;
+  color: #777872;
+}
+
+.architecture-side-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+}
+
+.architecture-hero-side strong {
+  color: var(--architecture-lime);
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+}
+
+.architecture-hero-side p {
+  margin: 0;
+  color: #deddd6;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 1.08;
+}
+
+.architecture-map-section,
+.architecture-stages-section,
+.architecture-services-section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-right: 10vw;
+  padding-left: 10vw;
+}
+
+.architecture-map-section { padding-top: 150px; padding-bottom: 150px; }
+
+.architecture-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
+  gap: 10vw;
+  align-items: end;
+  margin-bottom: 62px;
+}
+
+.architecture-section-heading-compact { margin-bottom: 56px; }
+
+.architecture-section-heading h2 {
+  max-width: 760px;
+  margin: 30px 0 0;
+  font-size: clamp(46px, 6.2vw, 90px);
+  font-weight: 600;
+  letter-spacing: -0.1em;
+  line-height: 0.9;
+}
+
+.architecture-section-heading > p {
+  max-width: 390px;
+  margin: 0 0 5px;
+  color: #666761;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.architecture-map-frame {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: #111210;
+  box-shadow: 0 30px 70px rgba(8,8,8,0.16);
+}
+
+.architecture-map-bar,
+.architecture-map-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 17px 22px;
+  color: #73746d;
+  font-size: 9px;
+}
+
+.architecture-map-bar { border-bottom: 1px solid rgba(255,255,255,0.12); }
+.architecture-map-bar span:first-child { color: var(--architecture-lime); }
+.architecture-map-bar i { display: inline-block; width: 5px; height: 5px; margin-right: 8px; border-radius: 50%; background: var(--architecture-lime); }
+
+.architecture-map-iframe {
+  display: block;
+  width: 100%;
+  height: 760px;
+  border: 0;
+  background: #111210;
+}
+
+.architecture-mobile-map { display: none; }
+
+.architecture-map-caption {
+  border-top: 1px solid rgba(255,255,255,0.12);
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.architecture-map-caption a {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+  color: #f2f1eb;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.architecture-map-caption a:hover { color: var(--architecture-lime); }
+
+.architecture-stages-section {
+  padding-top: 150px;
+  padding-bottom: 170px;
+  border-top: 1px solid var(--architecture-line);
+}
+
+.architecture-stages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.architecture-stage {
+  min-height: 310px;
+  padding: 28px 28px 32px;
+  border-top: 4px solid var(--architecture-lime);
+  background: #e8e7e0;
+}
+
+.architecture-stage-blue { border-top-color: #8eaef0; background: #dce7fb; }
+.architecture-stage-violet { border-top-color: #9c7eff; background: #e7e0f5; }
+
+.architecture-stage-topline {
+  display: flex;
+  justify-content: space-between;
+  color: #777872;
+  font-size: 9px;
+}
+
+.architecture-stage-topline span:first-child { color: var(--architecture-ink); }
+.architecture-stage h3 { max-width: 300px; margin: 84px 0 23px; font-size: clamp(25px, 3vw, 39px); font-weight: 500; letter-spacing: -0.08em; line-height: 0.97; }
+.architecture-stage p { max-width: 350px; margin: 0; color: #60615c; font-size: 13px; line-height: 1.7; }
+
+.architecture-services-section {
+  padding-top: 150px;
+  padding-bottom: 170px;
+  border-top: 1px solid var(--architecture-line);
+}
+
+.architecture-services-list { border-top: 1px solid var(--architecture-line); }
+
+.architecture-service-row {
+  display: grid;
+  grid-template-columns: 54px 70px minmax(170px, 0.8fr) minmax(250px, 1.2fr) 18px;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--architecture-line);
+  color: inherit;
+  text-decoration: none;
+  transition: padding 180ms ease, background-color 180ms ease;
+}
+
+.architecture-service-row:hover { padding-right: 10px; padding-left: 10px; background: rgba(255,255,255,0.65); }
+
+.architecture-service-mark {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e5e4de;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+}
+
+.architecture-service-mark-lime { background: var(--architecture-lime); }
+.architecture-service-mark-blue { background: var(--architecture-blue); }
+.architecture-service-mark-paper { background: #deddd6; }
+.architecture-service-mark-dark { background: #232421; color: #f3f2ed; }
+.architecture-service-mark-orange { background: #ef995b; }
+.architecture-service-mark-violet { background: #d8cbff; }
+.architecture-service-mark-mint { background: #b9ebd8; }
+.architecture-service-mark-coral { background: #ffd0c5; }
+.architecture-service-mark-gold { background: #f0cf73; }
+.architecture-service-mark-ink { background: #232421; color: #f3f2ed; }
+
+.architecture-service-number {
+  color: #aaa9a0;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 9px;
+}
+
+.architecture-service-name { font-size: 22px; font-weight: 500; letter-spacing: -0.06em; }
+.architecture-service-role { color: #666761; font-size: 13px; line-height: 1.4; }
+.architecture-service-row > svg { color: #777872; transition: transform 180ms ease, color 180ms ease; }
+.architecture-service-row:hover > svg { color: var(--architecture-ink); transform: translate(2px, -2px); }
+
+.architecture-boundary-section {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.7fr 1fr;
+  gap: 10vw;
+  align-items: center;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 150px 10vw 170px;
+  background: var(--architecture-ink);
+  color: #f3f2ed;
+}
+
+.architecture-boundary-section::before {
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  content: '';
+}
+
+.architecture-boundary-mark {
+  position: relative;
+  display: grid;
+  width: min(29vw, 350px);
+  height: min(29vw, 350px);
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.17);
+  border-radius: 50%;
+}
+
+.architecture-boundary-mark::before,
+.architecture-boundary-mark::after {
+  position: absolute;
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 50%;
+  content: '';
+}
+
+.architecture-boundary-mark::before { inset: 15%; }
+.architecture-boundary-mark::after { inset: 31%; }
+.architecture-boundary-mark span { color: var(--architecture-lime); font-size: clamp(80px, 12vw, 170px); font-weight: 600; letter-spacing: -0.13em; }
+
+.architecture-boundary-section h2 { margin: 30px 0 0; font-size: clamp(48px, 6vw, 88px); font-weight: 600; letter-spacing: -0.1em; line-height: 0.88; }
+.architecture-boundary-section p { max-width: 470px; margin: 32px 0 0; color: #a2a29c; font-size: 15px; line-height: 1.75; }
+
+.architecture-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 36px;
+  border-bottom: 1px solid #f3f2ed;
+  padding-bottom: 9px;
+  color: #f3f2ed;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.architecture-text-link:hover { color: var(--architecture-lime); border-color: var(--architecture-lime); }
+
+.architecture-footer {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 29px 10vw 35px;
+  background: var(--architecture-ink);
+  color: #777872;
+  font-size: 9px;
+}
+
+@media (max-width: 860px) {
+  .architecture-hero { min-height: 730px; padding: 140px 7vw 90px; }
+  .architecture-hero-copy { width: 100%; }
+  .architecture-hero-side { right: 7vw; bottom: 7%; }
+  .architecture-map-section,
+  .architecture-stages-section,
+  .architecture-services-section { padding-right: 7vw; padding-left: 7vw; }
+  .architecture-map-section { padding-top: 100px; padding-bottom: 100px; }
+  .architecture-section-heading { display: block; margin-bottom: 44px; }
+  .architecture-section-heading > p { margin-top: 28px; }
+  .architecture-map-iframe { height: 680px; }
+  .architecture-stages-section,
+  .architecture-services-section { padding-top: 100px; padding-bottom: 110px; }
+  .architecture-stages-grid { grid-template-columns: 1fr; }
+  .architecture-stage { min-height: 0; }
+  .architecture-stage h3 { margin-top: 60px; }
+  .architecture-boundary-section { grid-template-columns: 1fr; gap: 75px; padding: 110px 7vw 115px; }
+  .architecture-boundary-mark { width: 55vw; height: 55vw; }
+  .architecture-footer { display: grid; gap: 17px; padding-right: 7vw; padding-left: 7vw; }
+}
+
+@media (max-width: 560px) {
+  .architecture-nav { padding: 22px 7vw; }
+  .architecture-nav-meta { gap: 0; font-size: 8px; }
+  .architecture-nav-meta > span { display: none; }
+  .architecture-nav-meta a { font-size: 8px; }
+  .architecture-hero { min-height: 690px; padding-top: 125px; }
+  .architecture-hero h1 { margin-top: 25px; font-size: clamp(54px, 15vw, 78px); }
+  .architecture-hero-copy > p { font-size: 14px; }
+  .architecture-hero-note { max-width: 220px; font-size: 8px; line-height: 1.5; }
+  .architecture-hero-side { right: 7vw; bottom: 6%; width: 120px; }
+  .architecture-hero-side p { font-size: 18px; }
+  .architecture-section-heading h2 { font-size: 52px; }
+  .architecture-map-bar,
+  .architecture-map-caption { display: grid; gap: 12px; padding: 15px; font-size: 8px; }
+  .architecture-map-iframe { display: none; }
+  .architecture-mobile-map { display: block; min-height: 500px; box-sizing: border-box; padding: 28px 22px 36px; background: #f8fafc; }
+  .architecture-mobile-map-kicker { color: #7d8490; font-family: 'DM Mono', ui-monospace, monospace; font-size: 8px; letter-spacing: 0.12em; }
+  .architecture-mobile-map-flow { position: relative; display: grid; gap: 29px; margin-top: 32px; }
+  .architecture-mobile-map-line { position: absolute; top: 8px; bottom: 8px; left: 8px; width: 1px; background: linear-gradient(#c5ff4a, #9c7eff); }
+  .architecture-mobile-map-node { position: relative; display: grid; grid-template-columns: 17px 1fr; gap: 16px; align-items: start; }
+  .architecture-mobile-map-dot { position: relative; z-index: 1; display: block; width: 17px; height: 17px; box-sizing: border-box; border: 1px solid #0aa77a; border-radius: 50%; background: #d9f6ec; }
+  .architecture-mobile-map-node:nth-of-type(5) .architecture-mobile-map-dot { border-color: #8d70eb; background: #e7e0ff; }
+  .architecture-mobile-map-node:last-child .architecture-mobile-map-dot { border-color: #8ea2bd; background: #e7edf5; }
+  .architecture-mobile-map-node span:last-child { display: grid; gap: 7px; }
+  .architecture-mobile-map-node strong { color: #1a1c20; font-size: 16px; font-weight: 600; letter-spacing: -0.05em; }
+  .architecture-mobile-map-node small { color: #737984; font-size: 11px; line-height: 1.45; }
+  .architecture-map-caption a { justify-self: start; }
+  .architecture-service-row { grid-template-columns: 42px 32px 1fr 18px; gap: 10px; padding: 17px 0; }
+  .architecture-service-row:hover { padding-right: 5px; padding-left: 5px; }
+  .architecture-service-mark { width: 32px; height: 32px; font-size: 13px; }
+  .architecture-service-number { font-size: 8px; }
+  .architecture-service-name { font-size: 19px; }
+  .architecture-service-role { grid-column: 3 / 4; grid-row: 2; font-size: 12px; }
+  .architecture-service-row > svg { grid-column: 4; grid-row: 1; }
+  .architecture-boundary-section h2 { font-size: 53px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "OPES — cómo funciona",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "data-to-context",
+        "label": "Del dato al contexto",
+        "focus": ["sources", "link", "atlas", "lens", "wave", "flux", "signal"],
+        "note": "Las fuentes se normalizan antes de alimentar a cada inteligencia especializada."
+      },
+      {
+        "id": "evidence-to-decision",
+        "label": "De evidencia a criterio",
+        "focus": ["atlas", "lens", "wave", "flux", "signal", "cortex", "intelligence", "agent"],
+        "note": "Cada lectura conserva su contexto antes de entrar en la convergencia."
+      },
+      {
+        "id": "human-review",
+        "label": "La lectura que se puede revisar",
+        "focus": ["intelligence", "agent", "vision", "review"],
+        "note": "El resultado se presenta para revisión humana; una recomendación no es una orden."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "sources",
+      "type": "external",
+      "label": "Fuentes externas",
+      "sublabel": "datos",
+      "tag": "entrada",
+      "pos": [40, 566],
+      "size": [152, 68]
+    },
+    {
+      "id": "link",
+      "type": "backend",
+      "label": "Link",
+      "sublabel": "datos normalizados",
+      "tag": "conecta",
+      "pos": [250, 330],
+      "size": [152, 68]
+    },
+    {
+      "id": "atlas",
+      "type": "backend",
+      "label": "Atlas",
+      "sublabel": "contexto macro",
+      "tag": "interpreta",
+      "pos": [500, 86],
+      "size": [152, 68]
+    },
+    {
+      "id": "lens",
+      "type": "backend",
+      "label": "Lens",
+      "sublabel": "empresa y valor",
+      "tag": "interpreta",
+      "pos": [500, 206],
+      "size": [152, 68]
+    },
+    {
+      "id": "wave",
+      "type": "backend",
+      "label": "Wave",
+      "sublabel": "precio y estructura",
+      "tag": "mide",
+      "pos": [500, 346],
+      "size": [152, 68]
+    },
+    {
+      "id": "flux",
+      "type": "backend",
+      "label": "Flux",
+      "sublabel": "opciones y volatilidad",
+      "tag": "mide",
+      "pos": [500, 446],
+      "size": [152, 68]
+    },
+    {
+      "id": "signal",
+      "type": "backend",
+      "label": "Signal",
+      "sublabel": "research estadístico",
+      "tag": "contrasta",
+      "pos": [500, 566],
+      "size": [152, 68]
+    },
+    {
+      "id": "cortex",
+      "type": "database",
+      "label": "Cortex",
+      "sublabel": "memoria contextual",
+      "tag": "recuerda",
+      "pos": [750, 566],
+      "size": [160, 68]
+    },
+    {
+      "id": "intelligence",
+      "type": "backend",
+      "label": "OPES Intelligence",
+      "sublabel": "convergencia",
+      "tag": "reúne",
+      "pos": [790, 286],
+      "size": [188, 76]
+    },
+    {
+      "id": "agent",
+      "type": "security",
+      "label": "Trading Agent",
+      "sublabel": "coordinación + gates",
+      "tag": "protege",
+      "pos": [1045, 286],
+      "size": [172, 76]
+    },
+    {
+      "id": "vision",
+      "type": "frontend",
+      "label": "Vision",
+      "sublabel": "informes visuales",
+      "tag": "presenta",
+      "pos": [1000, 500],
+      "size": [160, 68]
+    },
+    {
+      "id": "review",
+      "type": "external",
+      "label": "Revisión humana",
+      "sublabel": "entender + aprender",
+      "tag": "salida",
+      "pos": [1195, 500],
+      "size": [156, 68]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Inteligencias especializadas",
+      "wraps": ["atlas", "lens", "wave", "flux", "signal"],
+      "pad": 22
+    },
+    {
+      "kind": "region",
+      "label": "Convergencia y coordinación",
+      "wraps": ["cortex", "intelligence", "agent"],
+      "pad": 22
+    }
+  ],
+  "connections": [
+    {
+      "from": "sources",
+      "to": "link",
+      "label": "datos externos",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "orthogonal-h",
+      "labelAt": [221, 482]
+    },
+    {
+      "from": "sources",
+      "to": "signal",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "link",
+      "to": "atlas",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "link",
+      "to": "lens",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "link",
+      "to": "wave",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "link",
+      "to": "flux",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "atlas",
+      "to": "intelligence",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "lens",
+      "to": "intelligence",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "wave",
+      "to": "intelligence",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "flux",
+      "to": "intelligence",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "signal",
+      "to": "intelligence",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "cortex",
+      "to": "intelligence",
+      "label": "memoria",
+      "variant": "dashed",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "intelligence",
+      "to": "agent",
+      "label": "recomendación auditable",
+      "variant": "security",
+      "route": "straight",
+      "labelAt": [1012, 282]
+    },
+    {
+      "from": "agent",
+      "to": "vision",
+      "label": "resultado",
+      "variant": "dashed",
+      "route": "orthogonal-v"
+    },
+    {
+      "from": "vision",
+      "to": "review",
+      "label": "lectura visual",
+      "variant": "emphasis",
+      "labelAt": [1239, 582]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cada inteligencia responde una pregunta",
+      "items": [
+        "Atlas mira el entorno macro",
+        "Lens mira la empresa",
+        "Wave y Flux miran el mercado desde ángulos distintos"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "La evidencia conserva su contexto",
+      "items": [
+        "Los datos llegan con identidad y momento",
+        "Las fuentes se normalizan antes de compararse",
+        "Las contradicciones no se esconden"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Una recomendación no es una orden",
+      "items": [
+        "Trading Agent coordina y aplica gates",
+        "Vision solo presenta resultados",
+        "La revisión humana sigue siendo parte del sistema"
+      ]
+    }
+  ]
+}

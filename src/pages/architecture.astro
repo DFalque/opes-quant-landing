@@ -1,0 +1,18 @@
+---
+import ArchitecturePage from '../components/ArchitecturePage.tsx';
+import architectureStyles from '../styles/architecture.css?url';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Cómo funciona OPES: mapa público de arquitectura e inteligencias." />
+    <link rel="stylesheet" href={architectureStyles} />
+    <title>Cómo funciona OPES — Arquitectura pública</title>
+  </head>
+  <body>
+    <ArchitecturePage client:load />
+  </body>
+</html>

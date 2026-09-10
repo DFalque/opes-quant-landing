@@ -149,6 +149,28 @@ test.describe('static pages', () => {
     await expect(page.locator('h1', { hasText: 'Signal' })).toBeVisible();
     await expect(page.getByText('Medir antes de creer.')).toBeVisible();
   });
+
+  test('public API documentation page is discoverable and safe', async ({ page }) => {
+    const response = await page.goto('/documentation');
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('.docs-hero h1')).toContainText('Una interfaz.');
+    await expect(page.locator('.docs-endpoint-chip')).toContainText('/api/wave/analyze');
+    await expect(page.locator('#request-json')).toContainText('"market": "US"');
+    await expect(page.locator('#request-json')).toContainText('"ticker": "AAPL"');
+    await expect(page.locator('.docs-page')).not.toContainText('PEGAR_AQUI');
+    await expect(page.locator('.docs-page')).not.toContainText('Bearer ey');
+
+    const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(horizontalOverflow).toBe(false);
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Documentación' }).click();
+    await expect(page).toHaveURL(/\/documentation$/);
+
+    await page.goto('/architecture');
+    await page.getByRole('link', { name: 'API docs' }).click();
+    await expect(page).toHaveURL(/\/documentation$/);
+  });
 });
 
 test.describe('API smoke', () => {
