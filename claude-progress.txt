@@ -42,7 +42,7 @@
 
 [2026-09-12 11:40] Sesión #6
 - Worked on: release de F-DOC-003
-- Commit: pendiente
-- Findings: `origin/main` avanzó con `3ea8f4a`, que publica Wave `v0.5.1` y alinea el gateway con `wave-analysis-v3`. El portal se actualizó para mostrar el estado desplegado y se preservó ese commit remoto antes de publicar el rediseño.
-- Eval result: build, 72 tests y smoke Playwright directo PASS; `git diff --check` PASS
-- Next: commit y push a `main`; verificar GitHub Actions Pages
+- Commit: `102ce45` + merge `84eeaad` + fix `20e40d4`, pushed a `main`
+- Findings: `origin/main` avanzó con `3ea8f4a`, que publica Wave `v0.5.1` y alinea el gateway con `wave-analysis-v3`. El portal se actualizó para mostrar el estado desplegado, se preservó el commit remoto y se corrigió un ejemplo JSON que tenía `fibonacciV3` duplicado tras el merge.
+- Eval result: build, 72 tests, smoke Playwright directo, `git diff --check` y GitHub Actions Pages PASS; URL live verificada sin overflow ni errores de consola
+- Next: mantener la referencia sincronizada con nuevas facades y cambios de contrato
