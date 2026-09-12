@@ -1,0 +1,162 @@
+# OPES
+
+OPES es un sistema de inteligencia de mercado. Wave es la capa que lee precio y
+estructura de mercado y devuelve evidencia técnica contextual. Wave no es un
+motor de decisión, riesgo, sizing, permisos ni ejecución.
+
+## Documentation map
+
+- `/architecture`: mapa público de responsabilidades y relaciones entre servicios.
+- `/documentation#api-reference`: referencia HTTP agrupada por servicio, con método,
+  path, auth, contratos, request, response y boundaries.
+- `/documentation#concepts`: conceptos de price action y el lugar de Wave dentro de OPES.
+- `/documentation#ai`: reglas para consumidores humanos y agentes de IA.
+
+## Public capability catalog
+
+- Catalog endpoint: `GET https://opes-quant.82-165-179-157.sslip.io/api/v1/capabilities`
+- Authentication: none.
+- Response contract: `opes-public-capabilities-v1`.
+- The catalog contains only sanitized method/path/status/contract metadata. It does
+  not expose private URLs, providers, credentials or internal service ports.
+- `public.wave.analysis` is `available` at `POST /api/wave/analyze`.
+- `public.flux.analysis`, `public.vision.render`,
+  `public.intelligence.analysis` and `public.context.query` are `planned`.
+
+## Wave public API
+
+- Public endpoint: `POST https://opes-quant.82-165-179-157.sslip.io/api/wave/analyze`
+- Authentication: `Authorization: Bearer <WAVE_DOMAIN_ACCESS_TOKEN>` is required.
+- Content type: `application/json`.
+- Request body: exactly two fields, `market` and `ticker`.
+- `market` and `ticker` are strings, are normalized to uppercase, have a maximum
+  length of 32 characters, and may contain only letters, numbers, dot, underscore
+  or hyphen.
+- Do not send `asOf`, `timeframe`, `horizon`, `currentPrice`, `bars`,
+  `instrumentId` or any other field to the public facade.
+- The public facade does not accept or return `aiContext`; LLM review remains a
+  separate private, opt-in boundary.
+
+## What changed in v0.5.1
+
+Wave publishes the `wave-analysis-v3` response contract and Fibonacci Context V3
+as the separate `fibonacciV3` field. The public gateway and capability catalog
+are aligned with the deployed Wave v0.5.1 runtime.
+
+The internal contract still carries request identity, trace identity, cutoff,
+timeframe, horizon, freshness policy and required domains. The public caller
+does not need to construct those fields.
+
+For each public request, Wave generates a request identity and trace, builds the
+instrument identity as `MARKET:TICKER`, sets the current UTC time as `asOf`, fixes
+`timeframe=1d`, `horizon=short`, `mode=decision-time`, and
+`executionMode=analysis_only`. It requires the internal domains `market-data` and
+`trend`, then obtains the price and bars from Link over a private network.
+
+The legacy route `/api/wave/v2/domain/analyze` remains available as a transport
+alias for authorized internal consumers. New external consumers should use
+`/api/wave/analyze`; the response contract is `wave-analysis-v3`.
+
+## Request flow
+
+1. Validate the exact JSON shape and normalize `market` and `ticker`.
+2. Generate request and trace identities and the temporal cutoff.
+3. Ask private Link Data for the price and historical bars.
+4. Validate instrument identity, cutoff, bar ordering, OHLCV, snapshot metadata
+   and the SHA-256 bars digest.
+5. Run deterministic analysis for structure, legacy Fibonacci, Fibonacci Context
+   V3, Fibonacci Fan, Pitchfan and Volume Profile. Daily history is requested
+   independently, with a default target of 1000 closed bars.
+6. Return evidence, provenance, warnings and execution boundaries as JSON.
+
+Wave does not silently invent missing data, convert partial data into a signal, or
+create broker orders.
+
+## Response contract
+
+The response is an instance of `wave-analysis-v3` and can include these top-level
+fields:
+
+- `version`: versioned response contract, currently `wave-analysis-v3`.
+- `status`: `ok` means the response was assembled; `partial` means some context
+  is incomplete or degraded, for example when a perspective lacks a valid anchor
+  or publishable candidates. `partial` does not mean bearish.
+- `instrument`: analyzed market, symbol, timeframe, horizon, `asOf` and current
+  reference price.
+- `dataContext`: data source, snapshot ID, bars digest, effective cutoff,
+  observation/retrieval timestamps, PIT status, freshness, skew and warnings.
+- `calculation`: calculation version, capabilities and analysis windows.
+- `structure`: pivots, HH/HL/LH/LL counts and contextual direction.
+- `fibonacci`: selected anchors, retracement levels, current phase and invalidation
+  context. It can be unavailable when no valid anchor exists.
+- `fibonacciV3`: multi-perspective daily context with tactical, parent, developing
+  and historical-reference perspectives, range windows, alternatives and reaction
+  evidence. It is analysis-only and may return `insufficient-data` with a request
+  for more daily bars.
+- `fibonacciFan`: fan availability, levels and reliability score. It is not a
+  prediction.
+- `pitchfanContext`: geometry calculated from daily bars plus validated intraday
+  context/lineage, candidates, variants, contacts and reactions. Only variants
+  meeting the minimum publication score are returned; an empty list is valid
+  evidence of no publishable variant.
+- `volumeProfile`: point of control, value area, high/low volume nodes and price
+  position in the analyzed range.
+- `warnings`: non-fatal caveats that must be preserved.
+- `errors`: structured errors inside the analysis; an empty array means no
+  analysis errors were reported.
+- `outputDigest`: SHA-256 identity of the response content.
+
+## Temporal semantics
+
+- `pitStatus=VERIFIED` means the source demonstrates availability at the cutoff.
+- `pitStatus=UNVERIFIED` means bars may be structurally valid but historical
+  availability at the exact cutoff has not been demonstrated.
+- `pitStatus=BLOCKED` means upstream temporal evidence is blocked. Wave fails
+  closed before producing a normal response; preserve the availability error and
+  do not use or invent the missing evidence.
+- `freshnessStatus=stale` means the effective data point is beyond the configured
+  freshness tolerance; inspect `timeSkewSeconds` and `warnings`.
+- `instrument.asOf` is the requested cutoff and `dataContext.effectiveAsOf` is
+  the last effective data timestamp. `availableAt` is not the same as either one.
+  Never treat retrieval time as proof of historical point-in-time availability.
+
+## Rules for AI consumers
+
+Treat Wave as a technical-context provider, not as a trading decision provider.
+Read in this order:
+
+1. Confirm `instrument` identity and `asOf`.
+2. Inspect `dataContext` provenance, `pitStatus`, freshness and warnings.
+3. Read each analysis module as a separate evidence source.
+4. Preserve `unavailable`, empty arrays, `partial` and warnings as missing or
+   degraded context. Do not convert them into bullish or bearish values.
+5. Separate observed facts from an AI-generated explanation or scenario.
+6. State uncertainty before presenting a scenario.
+7. Never infer `BUY`, `SELL`, `HOLD`, sizing, a permit or an order from Wave alone.
+
+The hard boundary is always:
+
+```json
+{
+  "decisionScope": "analysis-only",
+  "executionEligible": false,
+  "ordersCreated": 0
+}
+```
+
+## HTTP errors
+
+- `400`: invalid JSON, multiple JSON values or fields outside the exact public
+  request shape. Do not retry without changing the request.
+- `401`: missing or invalid Bearer token. Do not retry blindly.
+- `422`: invalid `market` or `ticker` format, or invalid public analysis request.
+- `502`: Link or the internal domain analysis could not provide a valid result.
+  A bounded retry may be appropriate for transient availability failures.
+- `503`: the public analysis service or its authorization configuration is not
+  available. Treat the service as unavailable.
+
+## Security and scope
+
+Wave is exposed through the HTTPS dashboard proxy. Link remains private. The
+public endpoint is read-only and never receives broker credentials, never calls a
+broker trading capability and never creates an order.
