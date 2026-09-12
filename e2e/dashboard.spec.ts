@@ -159,6 +159,9 @@ test.describe('static pages', () => {
     await expect(page.locator('#wave .docs-operation-primary')).toContainText('/api/wave/analyze');
     await expect(page.locator('#wave-request-json')).toContainText('"market": "US"');
     await expect(page.locator('#wave-request-json')).toContainText('"ticker": "AAPL"');
+    const waveResponse = await page.locator('#wave-response-json').textContent();
+    expect(() => JSON.parse(waveResponse ?? '')).not.toThrow();
+    expect(waveResponse?.match(/"fibonacciV3"/g)).toHaveLength(1);
     await expect(page.locator('#concepts')).toContainText('Price action');
     await expect(page.locator('#concepts')).toContainText('Fibonacci context');
     await expect(page.locator('#ai')).toContainText('Para personas.');
