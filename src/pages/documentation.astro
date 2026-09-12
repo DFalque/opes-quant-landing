@@ -10,205 +10,365 @@ import { sitePath } from '../lib/site-path';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Documentación pública para consumir los endpoints de OPES Wave."
+      content="Documentación pública de OPES: arquitectura, catálogo de APIs, Wave price action y guía para consumidores de IA."
     />
     <link rel="stylesheet" href={documentationStyles} />
-    <title>Documentación API — OPES Wave</title>
+    <title>Documentación — OPES</title>
   </head>
   <body>
     <div class="docs-page">
-      <header class="docs-hero">
-        <nav class="docs-nav" aria-label="Navegación de documentación">
-          <a class="docs-brand" href={sitePath('/')} aria-label="Volver a OPES">
-            <span class="docs-brand-orbit" aria-hidden="true"><span /></span>
-            <span>opes</span>
-          </a>
-          <div class="docs-nav-links">
-            <a href={sitePath('/architecture')}>Arquitectura</a>
-            <a href={sitePath('/')}>Volver a OPES</a>
-          </div>
-        </nav>
-
-        <div class="docs-hero-grid" aria-hidden="true" />
-        <div class="docs-hero-glow" aria-hidden="true" />
-        <div class="docs-hero-inner">
-          <div>
-            <p class="docs-eyebrow">OPES / PUBLIC API DOCUMENTATION</p>
-            <h1>Una interfaz.<br /><em>Dos campos.</em></h1>
-            <p class="docs-hero-copy">
-              La forma más sencilla de pedir una lectura de mercado a Wave. Tú indicas el
-              mercado y el activo; OPES se ocupa del contexto.
-            </p>
-          </div>
-          <aside class="docs-hero-aside" aria-label="Estado de la API">
-            <span class="docs-aside-line" />
-            <span class="docs-aside-label">CURRENT RELEASE</span>
-            <strong>WAVE / 0.4.0</strong>
-            <span class="docs-aside-status"><i /> API DISPONIBLE</span>
-          </aside>
+      <header class="docs-topbar">
+        <a class="docs-brand" href={sitePath('/')} aria-label="Volver a OPES">
+          <span class="docs-brand-orbit" aria-hidden="true"><span /></span>
+          <span>opes</span>
+        </a>
+        <div class="docs-topbar-context">
+          <span>PUBLIC DOCUMENTATION</span>
+          <span class="docs-topbar-divider" aria-hidden="true" />
+          <span>WAVE v0.5.1 · DEPLOYED</span>
         </div>
+        <nav class="docs-topbar-links" aria-label="Enlaces globales">
+          <a href={sitePath('/architecture')}>Arquitectura pública</a>
+          <a href={sitePath('/llms.txt')}>llms.txt</a>
+          <a href={sitePath('/')}>OPES ↗</a>
+        </nav>
       </header>
 
-      <main class="docs-main">
-        <aside class="docs-index" aria-label="Índice de documentación">
-          <p>EN ESTA PÁGINA</p>
-          <a href="#quickstart">01 / Empezar</a>
-          <a href="#request">02 / Request</a>
-          <a href="#response">03 / Response</a>
-          <a href="#errors">04 / Errores</a>
-          <a href="#boundary">05 / Límites</a>
+      <div class="docs-layout">
+        <aside class="docs-sidebar" aria-label="Índice de documentación">
+          <div class="docs-sidebar-intro">
+            <span class="docs-sidebar-kicker">OPES / DOCS</span>
+            <strong>Una guía del sistema.</strong>
+            <p>Contratos públicos, arquitectura y conceptos para integrar sin conocer el runtime privado.</p>
+          </div>
+
+          <nav class="docs-sidebar-nav">
+            <a class="is-active" href="#overview"><span>00</span>Overview</a>
+            <div class="docs-sidebar-group">
+              <span>FOUNDATIONS</span>
+              <a href="#architecture"><span>01</span>Architecture</a>
+              <a href="#concepts"><span>04</span>Concepts / Price action</a>
+            </div>
+            <div class="docs-sidebar-group">
+              <span>API REFERENCE</span>
+              <a href="#catalog"><span>02.0</span>Capabilities catalog</a>
+              <a href="#wave"><span>02.1</span>Wave</a>
+              <a href="#flux"><span>02.2</span>Flux</a>
+              <a href="#planned"><span>02.3</span>Planned APIs</a>
+            </div>
+            <div class="docs-sidebar-group">
+              <span>CONSUMERS</span>
+              <a href="#ai"><span>05</span>AI consumers</a>
+            </div>
+          </nav>
+
+          <a class="docs-sidebar-llms" href={sitePath('/llms.txt')}>
+            <span>AGENT CONTEXT</span>
+            <strong>Open llms.txt ↗</strong>
+          </a>
         </aside>
 
-        <div class="docs-content">
-          <section class="docs-intro-section" id="quickstart" aria-labelledby="quickstart-title">
-            <div class="docs-section-kicker"><span>01</span><span>EMPEZAR</span></div>
-            <div class="docs-intro-grid">
+        <main class="docs-document">
+          <section class="docs-overview" id="overview" aria-labelledby="overview-title">
+            <div class="docs-breadcrumb">OPES / DOCUMENTATION / OVERVIEW</div>
+            <div class="docs-overview-grid">
               <div>
-                <h2 id="quickstart-title">Pide una lectura<br /><em>sin preparar los datos.</em></h2>
-              </div>
-              <div class="docs-intro-copy">
-                <p>
-                  Wave recibe la identidad del instrumento y obtiene internamente el precio y
-                  las velas a través de Link. No necesitas recopilar OHLCV, calcular un timestamp
-                  ni construir un payload de dominio.
+                <h1 id="overview-title">Context, contratos<br /><em>y APIs públicas.</em></h1>
+                <p class="docs-lead">
+                  Esta documentación separa tres capas: cómo se organiza OPES, qué APIs se pueden consumir
+                  y qué significa la evidencia que devuelve cada servicio.
                 </p>
-                <div class="docs-endpoint-chip">
-                  <span>POST</span>
-                  <code>/api/wave/analyze</code>
-                </div>
               </div>
+              <div class="docs-overview-status">
+                <div><span>PUBLIC SURFACE</span><strong>HTTPS / READ-ONLY</strong></div>
+                <div><span>AVAILABLE NOW</span><strong>WAVE · FLUX</strong></div>
+                <div><span>PRIVATE BY DESIGN</span><strong>LINK · CORTEX · BROKER</strong></div>
+              </div>
+            </div>
+            <div class="docs-overview-cards">
+              <a href="#architecture" class="docs-overview-card docs-overview-card-lime">
+                <span>01 / FOUNDATION</span>
+                <strong>Architecture</strong>
+                <p>Qué componentes existen, qué responsabilidad tiene cada uno y cómo circula el contexto.</p>
+                <i>↗</i>
+              </a>
+              <a href="#api-reference" class="docs-overview-card">
+                <span>02 / CONTRACTS</span>
+                <strong>API reference</strong>
+                <p>Operaciones agrupadas por servicio, al estilo Swagger: método, path, auth y payload.</p>
+                <i>↗</i>
+              </a>
+              <a href="#concepts" class="docs-overview-card">
+                <span>03 / DOMAIN</span>
+                <strong>Price action</strong>
+                <p>Qué significa Wave dentro del dominio técnico y cómo leer sus perspectivas.</p>
+                <i>↗</i>
+              </a>
             </div>
           </section>
 
-          <section class="docs-panel-section" id="request" aria-labelledby="request-title">
-            <div class="docs-section-kicker"><span>02</span><span>REQUEST</span></div>
-            <div class="docs-panel-heading">
+          <section class="docs-section docs-architecture-section" id="architecture" aria-labelledby="architecture-title">
+            <div class="docs-section-marker"><span>01</span><span>FOUNDATION / ARCHITECTURE</span></div>
+            <div class="docs-section-heading">
               <div>
-                <h2 id="request-title">La request mínima.</h2>
-                <p>Solo dos campos. Los nombres de mercado y ticker se normalizan a mayúsculas.</p>
+                <h2 id="architecture-title">Primero entiende<br /><em>la red.</em></h2>
               </div>
-              <span class="docs-required">AUTH / BEARER REQUIRED</span>
+              <p>La arquitectura responde quién hace qué. La API reference responde cómo pedirlo. Son documentos distintos.</p>
+            </div>
+            <div class="docs-architecture-card">
+              <div class="docs-architecture-map" aria-hidden="true">
+                <span class="docs-map-node docs-map-source">SOURCES</span>
+                <span class="docs-map-line docs-map-line-one" />
+                <span class="docs-map-line docs-map-line-two" />
+                <span class="docs-map-node docs-map-link">LINK</span>
+                <span class="docs-map-line docs-map-line-three" />
+                <span class="docs-map-node docs-map-wave">WAVE</span>
+                <span class="docs-map-node docs-map-intelligence">INTELLIGENCE</span>
+              </div>
+              <div class="docs-architecture-copy">
+                <span class="docs-card-kicker">PUBLIC MAP / HIGH LEVEL</span>
+                <h3>Una vista humana del sistema.</h3>
+                <p>
+                  El mapa muestra fuentes, servicios de contexto, capas de análisis y la frontera de decisión
+                  sin publicar puertos, credenciales ni detalles operativos del VPS.
+                </p>
+                <a class="docs-button" href={sitePath('/architecture')}>Explorar arquitectura <span>↗</span></a>
+              </div>
+            </div>
+            <div class="docs-note-row">
+              <span>DOCUMENTATION RULE</span>
+              <p>Usa Architecture para entender relaciones y responsabilidades. Usa API Reference para integrar endpoints concretos.</p>
+            </div>
+          </section>
+
+          <section class="docs-section docs-api-section" id="api-reference" aria-labelledby="api-title">
+            <div class="docs-section-marker"><span>02</span><span>CONTRACTS / API REFERENCE</span></div>
+            <div class="docs-section-heading docs-api-heading">
+              <div>
+                <h2 id="api-title">APIs públicas.<br /><em>Una lista que puede crecer.</em></h2>
+              </div>
+              <div>
+                <p>La superficie pública es una colección de facades versionadas. Cada operación conserva auth, contrato, estado y boundary de ejecución.</p>
+                <label class="docs-search">
+                  <span>⌕</span>
+                  <input type="search" placeholder="Filtrar endpoints..." aria-label="Filtrar endpoints" data-api-search />
+                </label>
+              </div>
             </div>
 
-            <div class="docs-code-block">
-              <div class="docs-code-topline"><span>JSON / application</span><button type="button" data-copy="request-json">Copiar</button></div>
-              <pre id="request-json"><code>&#123;
+            <div class="docs-api-groups">
+              <section class="docs-api-group" id="catalog" aria-labelledby="catalog-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.0</span><h3 id="catalog-title">Capabilities catalog</h3></div>
+                  <p>Descubrimiento público</p>
+                </div>
+                <details class="docs-operation" open data-api-operation data-search="capabilities catalog available planned api discovery">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-get">GET</span><code>/api/v1/capabilities</code></div>
+                    <span class="docs-operation-title">Descubrir qué APIs están disponibles</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>none</strong><span>CONTRACT</span><strong>opes-public-capabilities-v1</strong><span>EXECUTION</span><strong>false / 0 orders</strong></div>
+                    <p class="docs-operation-description">Catálogo sanitizado de la superficie pública. No expone proveedores, URLs privadas, tokens ni puertos internos.</p>
+                    <div class="docs-code-block docs-code-dark docs-inline-code-block">
+                      <div class="docs-code-topline"><span>cURL / PUBLIC</span><button type="button" data-copy="catalog-curl">Copiar</button></div>
+                      <pre id="catalog-curl"><code>curl https://opes-quant.82-165-179-157.sslip.io/api/v1/capabilities</code></pre>
+                    </div>
+                    <div class="docs-operation-schema">
+                      <div><span>RESPONSE SHAPE</span><code>capabilities[]</code><p>id · status · method · path · auth · requestContract · responseContract</p></div>
+                      <div><span>AVAILABLE</span><code>Wave · Flux</code><p>Las dos facades públicas activas en el catálogo actual.</p></div>
+                      <div><span>PLANNED</span><code>Vision · Intelligence · Context</code><p>Reservadas para contratos externos propios, no proxies genéricos.</p></div>
+                    </div>
+                  </div>
+                </details>
+              </section>
+
+              <section class="docs-api-group" id="wave" aria-labelledby="wave-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.1</span><h3 id="wave-title">Wave / Price action</h3></div>
+                  <p>Market structure · technical context</p>
+                </div>
+                <p class="docs-api-group-intro">Wave es la primera capa de price action de OPES: transforma identidad de instrumento en evidencia técnica contextual.</p>
+                <div class="docs-version-note"><strong>Version note.</strong> Wave `v0.5.1` está publicado y desplegado: la facade pública devuelve `wave-analysis-v3` y separa `fibonacciV3` del Fibonacci legacy.</div>
+
+                <details class="docs-operation docs-operation-primary" open data-api-operation data-search="wave analyze price action structure fibonacci pitchfan public post">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/wave/analyze</code></div>
+                    <span class="docs-operation-title">Análisis técnico público</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer</strong><span>REQUEST</span><strong>market + ticker</strong><span>RESPONSE</span><strong>wave-analysis-v3</strong></div>
+                    <p class="docs-operation-description">Fachada compacta. El caller no envía OHLCV, precio, timestamp ni contrato de dominio; Wave genera el contexto y obtiene datos desde Link privado.</p>
+                    <div class="docs-request-response-grid">
+                      <div>
+                        <span class="docs-code-label">REQUEST BODY / JSON</span>
+                        <div class="docs-code-block"><pre id="wave-request-json"><code>&#123;
   &quot;market&quot;: &quot;US&quot;,
   &quot;ticker&quot;: &quot;AAPL&quot;
-&#125;</code></pre>
-            </div>
-
-            <div class="docs-callout docs-callout-lime">
-              <span class="docs-callout-mark">i</span>
-              <p><strong>No envíes precio ni velas.</strong> Wave genera `asOf`, fija `timeframe=1d` y delega el análisis a Link.</p>
-            </div>
-          </section>
-
-          <section class="docs-command-section" aria-labelledby="command-title">
-            <div class="docs-command-heading">
-              <div class="docs-section-kicker"><span>QUICK TEST</span><span>01 LINE</span></div>
-              <h2 id="command-title">Pruébalo desde<br /><em>cualquier terminal.</em></h2>
-            </div>
-            <div class="docs-code-block docs-code-dark">
-              <div class="docs-code-topline"><span>cURL / HTTPS</span><button type="button" data-copy="curl-command">Copiar</button></div>
-              <pre id="curl-command"><code>curl -X POST &#92;
-  https://opes-quant.82-165-179-157.sslip.io/api/wave/analyze &#92;
-  -H "Authorization: Bearer $WAVE_DOMAIN_ACCESS_TOKEN" &#92;
-  -H "Content-Type: application/json" &#92;
-  -d '&#123;&quot;market&quot;:&quot;US&quot;,&quot;ticker&quot;:&quot;AAPL&quot;&#125;'</code></pre>
-            </div>
-            <p class="docs-inline-note">En Bruno: usa el environment `Local`, guarda el token como variable y envía la misma request.</p>
-          </section>
-
-          <section class="docs-response-section" id="response" aria-labelledby="response-title">
-            <div class="docs-section-kicker"><span>03</span><span>RESPONSE</span></div>
-            <div class="docs-panel-heading">
-              <div>
-                <h2 id="response-title">Una respuesta<br /><em>con contexto.</em></h2>
-                <p>La respuesta completa incluye evidencia técnica, provenance y estado temporal.</p>
-              </div>
-              <span class="docs-http-status">200 / PARTIAL</span>
-            </div>
-            <div class="docs-response-grid">
-              <div class="docs-code-block">
-                <div class="docs-code-topline"><span>JSON / excerpt</span><span>READ-ONLY</span></div>
-                <pre><code>&#123;
+&#125;</code></pre></div>
+                      </div>
+                      <div>
+                        <span class="docs-code-label">RESPONSE / EXCERPT</span>
+                        <div class="docs-code-block"><pre><code>&#123;
+  &quot;version&quot;: &quot;wave-analysis-v3&quot;,
   &quot;status&quot;: &quot;partial&quot;,
-  &quot;version&quot;: &quot;wave-analysis-v2&quot;,
-  &quot;instrument&quot;: &#123;
-    &quot;market&quot;: &quot;US&quot;,
-    &quot;symbol&quot;: &quot;AAPL&quot;,
-    &quot;timeframe&quot;: &quot;1d&quot;,
-    &quot;horizon&quot;: &quot;short&quot;
-  &#125;,
-  &quot;dataContext&quot;: &#123;
-    &quot;pitStatus&quot;: &quot;UNVERIFIED&quot;
-  &#125;,
+  &quot;fibonacciV3&quot;: &#123; &quot;status&quot;: &quot;ok&quot; &#125;,
   &quot;executionEligible&quot;: false,
   &quot;ordersCreated&quot;: 0
-&#125;</code></pre>
-              </div>
-              <div class="docs-response-notes">
-                <div><span>STATUS</span><strong>partial</strong><p>Hay datos válidos, pero alguna condición temporal permanece degradada.</p></div>
-                <div><span>PROVENANCE</span><strong>UNVERIFIED</strong><p>La disponibilidad histórica no se presenta como evidencia PIT verificada.</p></div>
-                <div><span>EXECUTION</span><strong>0 ORDERS</strong><p>La API produce lectura y evidencia, nunca órdenes de broker.</p></div>
-              </div>
+&#125;</code></pre></div>
+                      </div>
+                    </div>
+                    <div class="docs-operation-links"><a href="#concepts">Ver conceptos de price action ↗</a><a href="#ai">Ver guía para IA ↗</a></div>
+                  </div>
+                </details>
+
+                <details class="docs-operation" data-api-operation data-search="wave health live get health readiness public">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-get">GET</span><code>/api/wave/health/live</code></div>
+                    <span class="docs-operation-title">Comprobar disponibilidad de Wave</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>none</strong><span>RESPONSE</span><strong>health envelope</strong></div>
+                    <p class="docs-operation-description">Healthcheck público de la facade. No prueba la calidad PIT del análisis ni la disponibilidad de Link.</p>
+                  </div>
+                </details>
+
+                <details class="docs-operation" data-api-operation data-search="wave legacy domain analyze internal authorized post v2 v3 alias">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/wave/v2/domain/analyze</code></div>
+                    <span class="docs-operation-title">Contrato de dominio legacy</span>
+                    <span class="docs-operation-state docs-state-legacy">legacy</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer</strong><span>USE</span><strong>authorized consumers</strong></div>
+                    <p class="docs-operation-description">Alias de transporte conservado para integraciones existentes. Las integraciones nuevas deben usar `/api/wave/analyze`; no es la request mínima.</p>
+                  </div>
+                </details>
+              </section>
+
+              <section class="docs-api-group" id="flux" aria-labelledby="flux-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.2</span><h3 id="flux-title">Flux / Options</h3></div>
+                  <p>Derivatives · liquidity positioning</p>
+                </div>
+                <p class="docs-api-group-intro">Flux observa cadena de opciones, volatilidad, skew, GEX proxy y walls. Es la segunda facade pública disponible.</p>
+                <details class="docs-operation" open data-api-operation data-search="flux options analyze derivatives liquidity post public">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/flux/analyze</code></div>
+                    <span class="docs-operation-title">Análisis público de opciones</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>REQUEST</span><strong>market + ticker</strong><span>RESPONSE</span><strong>opes-public-flux-analysis-v1</strong></div>
+                    <div class="docs-request-response-grid">
+                      <div><span class="docs-code-label">REQUEST BODY / JSON</span><div class="docs-code-block"><pre><code>&#123;
+  &quot;market&quot;: &quot;US&quot;,
+  &quot;ticker&quot;: &quot;AAPL&quot;
+&#125;</code></pre></div></div>
+                      <div><span class="docs-code-label">BOUNDARY</span><div class="docs-code-block docs-code-dark"><pre><code>&#123;
+  &quot;executionEligible&quot;: false,
+  &quot;ordersCreated&quot;: 0
+&#125;</code></pre></div></div>
+                    </div>
+                    <div class="docs-operation-links"><a href="#concepts">Ver frontera de price action ↗</a><span>Flux no es broker ni ejecuta opciones.</span></div>
+                  </div>
+                </details>
+              </section>
+
+              <section class="docs-api-group" id="planned" aria-labelledby="planned-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.3</span><h3 id="planned-title">Planned APIs</h3></div>
+                  <p>Not available for integration</p>
+                </div>
+                <div class="docs-planned-grid">
+                  <div><span>PLANNED</span><strong>Vision / Render</strong><p>Render de evidencia validada sin recursos remotos.</p></div>
+                  <div><span>PLANNED</span><strong>Intelligence / Analyze</strong><p>Convergencia externa con contrato analysis-only propio.</p></div>
+                  <div><span>PLANNED</span><strong>Context / Query</strong><p>Context Pack scoped; no retrieval bruto de Cortex.</p></div>
+                </div>
+              </section>
             </div>
           </section>
 
-          <section class="docs-errors-section" id="errors" aria-labelledby="errors-title">
-            <div class="docs-section-kicker"><span>04</span><span>ERRORES</span></div>
-            <div class="docs-errors-heading">
-              <h2 id="errors-title">Si algo falla,<br /><em>lo sabrás.</em></h2>
-              <p>Wave no disfraza un bloqueo de análisis válido ni convierte una respuesta parcial en permiso operativo.</p>
+          <section class="docs-section docs-concepts-section" id="concepts" aria-labelledby="concepts-title">
+            <div class="docs-section-marker"><span>04</span><span>DOMAIN / PRICE ACTION</span></div>
+            <div class="docs-section-heading">
+              <div><h2 id="concepts-title">Wave vive aquí:<br /><em>Price action.</em></h2></div>
+              <p>No es una API aislada de indicadores. Wave compone lecturas técnicas que otras capas pueden ponderar junto con opciones, macro, fundamentals y memoria.</p>
             </div>
-            <div class="docs-error-list">
-              <div><strong>400</strong><span>JSON inválido o más campos de los permitidos.</span><code>invalid-json / invalid-body</code></div>
-              <div><strong>401</strong><span>Falta el Bearer o no coincide con la API.</span><code>unauthorized</code></div>
-              <div><strong>422</strong><span>Mercado o ticker no válidos para el contrato.</span><code>invalid-public-analysis-request</code></div>
-              <div><strong>502 / 503</strong><span>Link o el análisis de dominio no están disponibles.</span><code>market-bars-unavailable</code></div>
+            <div class="docs-concept-grid">
+              <article><span>01 / STRUCTURE</span><h3>Market structure</h3><p>Pivots, HH, HL, LH, LL y dirección contextual. Describe el comportamiento observado, no una orden.</p></article>
+              <article><span>02 / FIBONACCI</span><h3>Fibonacci context</h3><p>Fibonacci legacy y `fibonacciV3` separado: anclajes, perspectivas diaria, rangos, reacciones y alternativas.</p></article>
+              <article><span>03 / VOLUME</span><h3>Volume profile</h3><p>POC, value area, HVN, LVN y posición del precio dentro del rango analizado.</p></article>
+              <article><span>04 / GEOMETRY</span><h3>Pitchfan & fan</h3><p>Geometrías, contactos y reacciones con provenance; el intradía completa lineage, no se convierte automáticamente en señal.</p></article>
             </div>
+            <div class="docs-note-row"><span>BOUNDARY</span><p>Wave proporciona contexto técnico. Riesgo, sizing, permisos y ejecución pertenecen a otras fronteras.</p></div>
           </section>
 
-          <section class="docs-boundary-section" id="boundary" aria-labelledby="boundary-title">
-            <div class="docs-boundary-mark" aria-hidden="true"><span>O</span></div>
-            <div>
-              <div class="docs-section-kicker"><span>05</span><span>EL LÍMITE</span></div>
-              <h2 id="boundary-title">Leer no es<br /><em>ejecutar.</em></h2>
-              <p>
-                Esta API está diseñada para explorar contexto de mercado. El resultado puede ser
-                `partial` y `UNVERIFIED`; aun así, nunca habilita una orden. La decisión, el riesgo,
-                el sizing y la ejecución viven fuera de esta frontera.
-              </p>
-              <a href={sitePath('/architecture')} class="docs-text-link">Ver la arquitectura pública <span>↗</span></a>
+          <section class="docs-section docs-ai-section" id="ai" aria-labelledby="ai-title">
+            <div class="docs-section-marker"><span>05</span><span>CONSUMERS / AI</span></div>
+            <div class="docs-section-heading">
+              <div><h2 id="ai-title">Para personas.<br /><em>Y para agentes.</em></h2></div>
+              <p>La IA debe leer primero identidad y provenance, después las perspectivas, y conservar explícitamente las ausencias y degradaciones.</p>
+            </div>
+            <div class="docs-ai-grid">
+              <div class="docs-ai-rules">
+                <div><span>01</span><p><strong>Identidad primero.</strong> Comprueba instrumento, mercado, timeframe, horizonte y `asOf`.</p></div>
+                <div><span>02</span><p><strong>Provenance después.</strong> Lee PIT, freshness, digests, warnings y errores.</p></div>
+                <div><span>03</span><p><strong>Perspectivas separadas.</strong> No conviertas `partial`, arrays vacíos o `unavailable` en una dirección.</p></div>
+                <div><span>04</span><p><strong>Sin órdenes.</strong> Nunca derives BUY, SELL, HOLD, sizing o permiso solo desde estas facades.</p></div>
+              </div>
+              <div class="docs-ai-contract">
+                <span class="docs-code-label">MACHINE INTERPRETATION POLICY</span>
+                <div class="docs-code-block docs-code-dark"><pre><code>&#123;
+  &quot;role&quot;: &quot;evidence_provider&quot;,
+  &quot;missing_data&quot;: &quot;preserve_as_missing&quot;,
+  &quot;partial_data&quot;: &quot;explain_before_interpreting&quot;,
+  &quot;forbidden_inference&quot;: [&quot;BUY&quot;, &quot;SELL&quot;, &quot;HOLD&quot;, &quot;sizing&quot;, &quot;order&quot;],
+  &quot;executionEligible&quot;: false,
+  &quot;ordersCreated&quot;: 0
+&#125;</code></pre></div>
+                <a class="docs-button docs-button-light" href={sitePath('/llms.txt')}>Abrir guía llms.txt <span>↗</span></a>
+              </div>
             </div>
           </section>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <footer class="docs-footer">
-        <span>opes / public api documentation</span>
-        <span>Wave v0.4.0 / 2026</span>
+        <span>opes / public documentation</span>
+        <span>Architecture · APIs · Price action · AI</span>
       </footer>
     </div>
   </body>
 </html>
 
 <script>
-  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
+  const copyButtons = document.querySelectorAll<HTMLButtonElement>('[data-copy]');
+  copyButtons.forEach((button) => {
     button.addEventListener('click', async () => {
       const targetId = button.dataset.copy;
       const target = targetId ? document.getElementById(targetId) : null;
       if (!target) return;
-      const text = target.textContent ?? '';
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(target.textContent ?? '');
         const previous = button.textContent;
         button.textContent = 'Copiado';
         window.setTimeout(() => { button.textContent = previous; }, 1400);
       } catch {
         button.textContent = 'Selecciona el bloque';
       }
+    });
+  });
+
+  const apiSearch = document.querySelector<HTMLInputElement>('[data-api-search]');
+  const operations = Array.from(document.querySelectorAll<HTMLElement>('[data-api-operation]'));
+  apiSearch?.addEventListener('input', () => {
+    const query = apiSearch.value.trim().toLowerCase();
+    operations.forEach((operation) => {
+      operation.hidden = Boolean(query) && !(operation.dataset.search ?? '').includes(query);
     });
   });
 </script>

@@ -52,5 +52,35 @@
       "Validar screenshots desktop/mobile sin overflow"
     ],
     "passes": true
+  },
+  {
+    "id": "F-DOC-002",
+    "category": "content",
+    "description": "La documentación de Wave explica el cambio de fachada, el flujo interno, las perspectivas de análisis y una política de interpretación segura para agentes de IA.",
+    "steps": [
+      "Navegar a /documentation",
+      "Ver la diferencia entre contrato interno, fachada pública v0.4.0 y ruta legacy",
+      "Ver el flujo completo desde market+ticker hasta la respuesta contextual",
+      "Ver el significado de structure, fibonacci, fibonacciFan, pitchfanContext y volumeProfile",
+      "Ver la diferencia entre ok, partial, VERIFIED, UNVERIFIED y stale",
+      "Ver la política pseudo-JSON de interpretación para agentes de IA",
+      "Comprobar que desktop y mobile siguen sin overflow"
+    ],
+    "passes": true
+  },
+  {
+    "id": "F-DOC-003",
+    "category": "functional",
+    "description": "La documentación de la landing funciona como un portal extensible: separa arquitectura, API reference, price action y consumidores de IA, con operaciones agrupadas al estilo Swagger.",
+    "steps": [
+      "Navegar a /documentation",
+      "Ver la navegación lateral por Overview, Architecture, API Reference, Concepts y AI Consumers",
+      "Ver el catálogo de capabilities y los grupos Wave, Flux y Planned APIs",
+      "Expandir una operación y comprobar método, path, auth, contrato, request y response",
+      "Filtrar la referencia por `flux` y comprobar que solo queda visible su operación",
+      "Abrir la arquitectura pública desde su tarjeta y el contexto llms.txt desde la guía de IA",
+      "Validar la página en desktop y mobile sin overflow ni errores de consola"
+    ],
+    "passes": true
   }
 ]

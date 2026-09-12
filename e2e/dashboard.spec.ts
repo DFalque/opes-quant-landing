@@ -153,12 +153,24 @@ test.describe('static pages', () => {
   test('public API documentation page is discoverable and safe', async ({ page }) => {
     const response = await page.goto('/documentation');
     expect(response?.status()).toBe(200);
-    await expect(page.locator('.docs-hero h1')).toContainText('Una interfaz.');
-    await expect(page.locator('.docs-endpoint-chip')).toContainText('/api/wave/analyze');
-    await expect(page.locator('#request-json')).toContainText('"market": "US"');
-    await expect(page.locator('#request-json')).toContainText('"ticker": "AAPL"');
+    await expect(page.locator('.docs-overview h1')).toContainText('Contexto, contratos');
+    await expect(page.locator('#catalog')).toContainText('/api/v1/capabilities');
+    await expect(page.locator('#catalog')).toContainText('opes-public-capabilities-v1');
+    await expect(page.locator('#wave .docs-operation-primary')).toContainText('/api/wave/analyze');
+    await expect(page.locator('#wave-request-json')).toContainText('"market": "US"');
+    await expect(page.locator('#wave-request-json')).toContainText('"ticker": "AAPL"');
+    await expect(page.locator('#concepts')).toContainText('Price action');
+    await expect(page.locator('#concepts')).toContainText('Fibonacci context');
+    await expect(page.locator('#ai')).toContainText('Para personas.');
+    await expect(page.locator('.docs-ai-contract')).toContainText('forbidden_inference');
+    await expect(page.getByRole('link', { name: /Open llms\.txt/ })).toHaveAttribute('href', '/llms.txt');
     await expect(page.locator('.docs-page')).not.toContainText('PEGAR_AQUI');
     await expect(page.locator('.docs-page')).not.toContainText('Bearer ey');
+
+    await page.getByLabel('Filtrar endpoints').fill('flux');
+    await expect(page.locator('#wave [data-api-operation]:visible')).toHaveCount(0);
+    await expect(page.locator('#flux [data-api-operation]:visible')).toHaveCount(1);
+    await page.getByLabel('Filtrar endpoints').fill('');
 
     const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(horizontalOverflow).toBe(false);

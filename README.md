@@ -31,8 +31,19 @@ El mapa es deliberadamente público y sanitizado: explica responsabilidades y
 flujos, pero no expone código, credenciales, configuración del VPS ni reglas
 internas de ejecución.
 
-## Documentación API pública
+## Portal de documentación pública
 
-`/documentation` explica cómo consumir la fachada pública de Wave con el request
-mínimo `market` + `ticker`, ejemplos cURL/Bruno, respuestas, errores y límites
-read-only. Nunca incluye tokens ni credenciales.
+`/documentation` separa cuatro recorridos: arquitectura pública, referencia de APIs,
+conceptos de price action y consumidores de IA. La referencia HTTP está agrupada
+como un catálogo tipo Swagger por servicio: capabilities, Wave, Flux y facades
+planned, con método, path, auth, contrato, request, response y boundary.
+
+Wave es la primera capa de price action y documenta la fachada mínima
+`market` + `ticker`, el contrato `wave-analysis-v3`, `fibonacciV3`, provenance,
+errores y límites de ejecución. El gateway público está desplegado con Wave
+`v0.5.1`. `/architecture` conserva el mapa público de alto nivel y no se mezcla
+con los detalles HTTP.
+
+`/llms.txt` contiene el catálogo y el mismo contrato en Markdown plano para consumidores
+automatizados: APIs disponibles/planned, request exacta, defaults generados por Wave,
+response map, reglas de provenance y límites de no ejecución.

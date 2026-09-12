@@ -25,3 +25,24 @@
 - Findings: Se añadió `/documentation` con el contrato público de Wave, quickstart cURL/Bruno, request/response, errores y límites read-only. La documentación no contiene tokens reales. El harness E2E histórico no arranca porque `playwright.config.ts` referencia un `../backend` inexistente; la verificación Playwright directa contra Astro sí pasa.
 - Eval result: PASS (Playwright desktop/mobile, navegación portada/arquitectura, copy buttons, sin overflow ni errores; calidad 5/5, originalidad 4/5, craft 5/5, funcionalidad 5/5)
 - Next: mantener la documentación de endpoints actualizada cuando se publiquen nuevas rutas
+
+[2026-09-10 19:30] Sesión #4
+- Worked on: F-DOC-002
+- Commit: not committed (pendiente de solicitud explícita de publicación)
+- Findings: La documentación anterior explicaba el quickstart, pero no la diferencia entre fachada pública y contrato interno ni la semántica de `partial`/PIT. Se añadió contexto de Wave v0.4.0, flujo de seis pasos, diccionario de response, política para IA y `public/llms.txt`.
+- Eval result: PASS (build, 72 tests, Playwright directo desktop/mobile, copy buttons, navegación a `/llms.txt`, sin overflow ni secretos)
+- Next: publicar la ampliación en GitHub Pages cuando el usuario lo solicite
+
+[2026-09-12 10:55] Sesión #5
+- Worked on: F-DOC-003
+- Commit: not committed (pendiente de solicitud explícita de publicación)
+- Findings: `/documentation` se reorganizó como portal extensible con navegación por Overview, Architecture, API Reference, Concepts y AI Consumers. La referencia HTTP quedó agrupada tipo Swagger por capabilities, Wave, Flux y planned APIs, con método, path, auth, contratos, request, response, boundaries y filtro local. Wave `v0.5.1` está publicado y desplegado con `wave-analysis-v3` y `fibonacciV3`.
+- Eval result: PASS (Astro build, 72 tests, smoke Playwright directo con filtro Flux, desplegables, enlaces `/architecture` y `/llms.txt`, cero errores de consola y sin overflow desktop/mobile)
+- Next: publicar cuando el usuario lo solicite; mantener la referencia sincronizada con nuevas facades y cambios de contrato
+
+[2026-09-12 11:40] Sesión #6
+- Worked on: release de F-DOC-003
+- Commit: pendiente
+- Findings: `origin/main` avanzó con `3ea8f4a`, que publica Wave `v0.5.1` y alinea el gateway con `wave-analysis-v3`. El portal se actualizó para mostrar el estado desplegado y se preservó ese commit remoto antes de publicar el rediseño.
+- Eval result: build, 72 tests y smoke Playwright directo PASS; `git diff --check` PASS
+- Next: commit y push a `main`; verificar GitHub Actions Pages
