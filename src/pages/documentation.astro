@@ -25,7 +25,7 @@ import { sitePath } from '../lib/site-path';
         <div class="docs-topbar-context">
           <span>PUBLIC DOCUMENTATION</span>
           <span class="docs-topbar-divider" aria-hidden="true" />
-          <span>WAVE v0.5.1 · DEPLOYED</span>
+          <span>WAVE v0.6.0 · API + MCP</span>
         </div>
         <nav class="docs-topbar-links" aria-label="Enlaces globales">
           <a href={sitePath('/architecture')}>Arquitectura pública</a>
@@ -53,6 +53,7 @@ import { sitePath } from '../lib/site-path';
               <span>API REFERENCE</span>
               <a href="#catalog"><span>02.0</span>Capabilities catalog</a>
               <a href="#wave"><span>02.1</span>Wave</a>
+              <a href="#wave-mcp"><span>02.1a</span>Wave MCP</a>
               <a href="#flux"><span>02.2</span>Flux</a>
               <a href="#planned"><span>02.3</span>Planned APIs</a>
             </div>
@@ -80,8 +81,8 @@ import { sitePath } from '../lib/site-path';
                 </p>
               </div>
               <div class="docs-overview-status">
-                <div><span>PUBLIC SURFACE</span><strong>HTTPS / READ-ONLY</strong></div>
-                <div><span>AVAILABLE NOW</span><strong>WAVE · FLUX</strong></div>
+                <div><span>PUBLIC SURFACE</span><strong>HTTPS / API + MCP</strong></div>
+                <div><span>AVAILABLE NOW</span><strong>WAVE API · WAVE MCP · FLUX</strong></div>
                 <div><span>PRIVATE BY DESIGN</span><strong>LINK · CORTEX · BROKER</strong></div>
               </div>
             </div>
@@ -190,7 +191,7 @@ import { sitePath } from '../lib/site-path';
                   <p>Market structure · technical context</p>
                 </div>
                 <p class="docs-api-group-intro">Wave es la primera capa de price action de OPES: transforma identidad de instrumento en evidencia técnica contextual.</p>
-                <div class="docs-version-note"><strong>Version note.</strong> Wave `v0.5.1` está publicado y desplegado: la facade pública devuelve `wave-analysis-v3` y separa `fibonacciV3` del Fibonacci legacy.</div>
+                <div class="docs-version-note"><strong>Version note.</strong> Wave <code>v0.6.0</code> añade una superficie MCP pública y autenticada con una única tool, <code>wave_analyze</code>. La API y el MCP devuelven el mismo contrato <code>wave-analysis-v3</code>.</div>
 
                 <details class="docs-operation docs-operation-primary" open data-api-operation data-search="wave analyze price action structure fibonacci pitchfan public post">
                   <summary>
@@ -230,6 +231,50 @@ import { sitePath } from '../lib/site-path';
                       </div>
                     </div>
                     <div class="docs-operation-links"><a href="#concepts">Ver conceptos de price action ↗</a><a href="#ai">Ver guía para IA ↗</a></div>
+                  </div>
+                </details>
+
+                <details class="docs-operation docs-operation-primary" id="wave-mcp" open data-api-operation data-search="wave mcp agent llm analyze streamable http bearer tool">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/wave/mcp</code></div>
+                    <span class="docs-operation-title">MCP público para agentes</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>TRANSPORT</span><strong>Streamable HTTP · stateless</strong><span>TOOLS</span><strong>1 read-only</strong></div>
+                    <p class="docs-operation-description">Permite que un LLM externo descubra e invoque el análisis público de Wave mediante MCP. No añade otro modelo dentro de Wave ni expone rutas internas: <code>wave_analyze</code> recibe solo <code>market</code> y <code>ticker</code> y devuelve la evidencia V3 completa.</p>
+                    <div class="docs-request-response-grid">
+                      <div>
+                        <span class="docs-code-label">MCP CLIENT / EXAMPLE</span>
+                        <div class="docs-code-block">
+                          <div class="docs-code-topline"><span>JSON / REMOTE MCP</span><button type="button" data-copy="wave-mcp-config">Copiar</button></div>
+                          <pre id="wave-mcp-config"><code>&#123;
+  &quot;mcpServers&quot;: &#123;
+    &quot;opes-wave&quot;: &#123;
+      &quot;type&quot;: &quot;http&quot;,
+      &quot;url&quot;: &quot;https://opes-quant.82-165-179-157.sslip.io/api/v1/wave/mcp&quot;,
+      &quot;headers&quot;: &#123;
+        &quot;Authorization&quot;: &quot;Bearer &lt;OPES_WAVE_MCP_TOKEN&gt;&quot;
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre>
+                        </div>
+                      </div>
+                      <div>
+                        <span class="docs-code-label">TOOL / INPUT</span>
+                        <div class="docs-code-block docs-code-dark"><pre><code>wave_analyze(&#123;
+  &quot;market&quot;: &quot;US&quot;,
+  &quot;ticker&quot;: &quot;AAPL&quot;
+&#125;)</code></pre></div>
+                      </div>
+                    </div>
+                    <div class="docs-operation-schema">
+                      <div><span>INTERPRETATION</span><code>identity → provenance → modules</code><p>La tool guía al agente para comprobar <code>asOf</code>, PIT, freshness y warnings antes de interpretar cada módulo.</p></div>
+                      <div><span>MISSING DATA</span><code>preserve</code><p><code>partial</code>, <code>unavailable</code> y arrays vacíos siguen siendo ausencia o degradación, nunca una señal implícita.</p></div>
+                      <div><span>BOUNDARY</span><code>analysis-only</code><p>No produce BUY, SELL, HOLD, sizing, permisos ni órdenes.</p></div>
+                    </div>
+                    <div class="docs-operation-links"><a href="#ai">Cómo debe interpretarlo una IA ↗</a><span>El token se solicita y configura fuera del prompt.</span></div>
                   </div>
                 </details>
 
@@ -328,6 +373,7 @@ import { sitePath } from '../lib/site-path';
                 <div><span>02</span><p><strong>Provenance después.</strong> Lee PIT, freshness, digests, warnings y errores.</p></div>
                 <div><span>03</span><p><strong>Perspectivas separadas.</strong> No conviertas `partial`, arrays vacíos o `unavailable` en una dirección.</p></div>
                 <div><span>04</span><p><strong>Sin órdenes.</strong> Nunca derives BUY, SELL, HOLD, sizing o permiso solo desde estas facades.</p></div>
+                <div><span>05</span><p><strong>MCP mantiene el contrato.</strong> <code>wave_analyze</code> añade instrucciones de lectura, pero su evidencia estructurada sigue siendo <code>wave-analysis-v3</code>.</p></div>
               </div>
               <div class="docs-ai-contract">
                 <span class="docs-code-label">MACHINE INTERPRETATION POLICY</span>

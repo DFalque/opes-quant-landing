@@ -52,8 +52,8 @@ export const serviceModules: LandingService[] = [
     mark: 'W',
     tone: 'dark',
     headline: 'El precio también cuenta una historia.',
-    detail: 'Wave transforma el movimiento del precio en una lectura estructurada con pivots, patrones, Fibonacci, Fan y Volume Profile.',
-    points: ['Estructura de mercado', 'Fibonacci y niveles', 'Volumen y price action'],
+    detail: 'Wave transforma el movimiento del precio en una lectura estructurada con pivots, patrones, Fibonacci, Fan y Volume Profile, disponible por API y por MCP para agentes externos autorizados.',
+    points: ['Estructura de mercado', 'Fibonacci y niveles', 'API + MCP read-only'],
   },
   {
     slug: 'flux',
