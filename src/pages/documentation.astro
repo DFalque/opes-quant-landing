@@ -243,6 +243,22 @@ import { sitePath } from '../lib/site-path';
                   <div class="docs-operation-body">
                     <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>TRANSPORT</span><strong>Streamable HTTP · stateless</strong><span>TOOLS</span><strong>1 read-only</strong></div>
                     <p class="docs-operation-description">Permite que un LLM externo descubra e invoque el análisis público de Wave mediante MCP. No añade otro modelo dentro de Wave ni expone rutas internas: <code>wave_analyze</code> recibe solo <code>market</code> y <code>ticker</code> y devuelve la evidencia V3 completa.</p>
+                    <div class="docs-mcp-primer">
+                      <div class="docs-mcp-definition">
+                        <span>QUÉ ES MCP</span>
+                        <strong>Un protocolo entre tu aplicación de IA y herramientas remotas.</strong>
+                        <p>El modelo no abre la URL por sí solo. Claude, ChatGPT, OpenCode u otro host compatible configura una vez el endpoint y el token; desde entonces puede descubrir y usar Wave durante una conversación.</p>
+                      </div>
+                      <ol class="docs-mcp-steps" aria-label="Cómo utiliza un LLM el MCP de Wave">
+                        <li><span>01</span><div><strong>Conecta</strong><p>Añade la URL MCP y el Bearer en la configuración del host.</p></div></li>
+                        <li><span>02</span><div><strong>Descubre</strong><p>El host consulta MCP y encuentra automáticamente <code>wave_analyze</code>, su descripción y sus argumentos.</p></div></li>
+                        <li><span>03</span><div><strong>Pregunta</strong><p>Pide en lenguaje natural: “analiza AAPL con Wave”. El host decide invocar la tool.</p></div></li>
+                        <li><span>04</span><div><strong>Interpreta</strong><p>Wave devuelve evidencia V3 estructurada y reglas de lectura para que el modelo prepare su explicación.</p></div></li>
+                      </ol>
+                    </div>
+                    <div class="docs-mcp-flow" aria-label="Flujo de una consulta MCP">
+                      <span>TÚ</span><i>→</i><span>APP DEL LLM</span><i>→</i><span>MCP WAVE</span><i>→</i><span>WAVE-ANALYSIS-V3</span><i>→</i><span>RESPUESTA</span>
+                    </div>
                     <div class="docs-request-response-grid">
                       <div>
                         <span class="docs-code-label">MCP CLIENT / EXAMPLE</span>
@@ -269,6 +285,7 @@ import { sitePath } from '../lib/site-path';
 &#125;)</code></pre></div>
                       </div>
                     </div>
+                    <div class="docs-note-row"><span>REQUISITO DEL CLIENTE</span><p>La aplicación debe soportar MCP remoto mediante Streamable HTTP y permitir configurar un header Bearer. No necesitas instalar Wave ni ejecutar un servidor MCP local.</p></div>
                     <div class="docs-operation-schema">
                       <div><span>INTERPRETATION</span><code>identity → provenance → modules</code><p>La tool guía al agente para comprobar <code>asOf</code>, PIT, freshness y warnings antes de interpretar cada módulo.</p></div>
                       <div><span>MISSING DATA</span><code>preserve</code><p><code>partial</code>, <code>unavailable</code> y arrays vacíos siguen siendo ausencia o degradación, nunca una señal implícita.</p></div>

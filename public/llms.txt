@@ -76,6 +76,10 @@ create broker orders.
 
 ## Wave public MCP
 
+- MCP is the protocol between an AI host application and remote tools. The model
+  does not use the endpoint URL directly from a prompt.
+- Configure the URL and Bearer once in a host that supports remote MCP over
+  Streamable HTTP. No local Wave server or package is required.
 - MCP endpoint: `POST https://opes-quant.82-165-179-157.sslip.io/api/v1/wave/mcp`
 - Transport: MCP Streamable HTTP in stateless JSON-response mode.
 - Authentication: `Authorization: Bearer <OPES_WAVE_MCP_TOKEN>` is required.
