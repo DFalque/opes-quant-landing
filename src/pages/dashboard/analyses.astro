@@ -2,7 +2,7 @@
 /**
  * /dashboard/analyses — lista todos los análisis per-ticker con decisión,
  * confidence y reasoning. Click en una fila abre el detalle (markdown body).
- * Data fetched client-side via api.analyses() (auth via localStorage).
+ * Data fetched client-side via api.analyses() (auth via the HttpOnly session cookie).
  */
 import Layout from '../../layouts/Layout.astro';
 ---
@@ -45,6 +45,7 @@ import Layout from '../../layouts/Layout.astro';
 
   <script>
     import { api, ApiError } from '../../lib/api';
+    import { sitePath } from '../../lib/site-path';
 
     const root = document.getElementById('analyses-root')!;
     const tickerFilter = document.getElementById('ticker-filter') as HTMLSelectElement;
@@ -165,7 +166,7 @@ import Layout from '../../layouts/Layout.astro';
         if (e instanceof ApiError) {
           if (e.status === 401) {
             statusMsg.textContent = 'No autenticado. Hacé login primero.';
-            setTimeout(() => { window.location.href = '/login'; }, 2000);
+            setTimeout(() => { window.location.href = sitePath('/login'); }, 2000);
           } else {
             statusMsg.textContent = `Error: ${e.message}`;
           }

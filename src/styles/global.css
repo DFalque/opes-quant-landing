@@ -31,3 +31,32 @@
 .hljs {
   background: transparent;
 }
+
+@media (max-width: 767px) {
+  .dashboard-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .dashboard-sidebar nav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 10px 12px;
+  }
+
+  .dashboard-sidebar nav a {
+    flex: 0 0 auto;
+  }
+
+  .dashboard-sidebar > div:last-child {
+    display: none;
+  }
+
+  .dashboard-main {
+    margin-left: 0;
+    max-width: none;
+    padding: 16px;
+  }
+}

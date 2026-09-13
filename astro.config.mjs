@@ -24,22 +24,20 @@ export default defineConfig({
     react(),
     tailwind({ applyBaseStyles: true }),
   ],
-  server: {
-    host: '0.0.0.0',
-    port: 4321,
-    // In dev, proxy /api/* to the FastAPI backend (so the frontend can
-    // call relative URLs even when running standalone).
-    proxy: {
-      '/api': {
-        target: process.env.PUBLIC_API_BASE?.replace(/\/api$/, '') || 'http://127.0.0.1:8765',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
   vite: {
     server: {
+      host: '0.0.0.0',
+      port: 4321,
       hmr: { overlay: false },
+      // In dev, proxy /api/* to the FastAPI backend (so the frontend can
+      // call relative URLs even when running standalone).
+      proxy: {
+        '/api': {
+          target: process.env.PUBLIC_API_BASE?.replace(/\/api$/, '') || 'http://127.0.0.1:8765',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
   },
 });

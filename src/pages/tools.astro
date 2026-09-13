@@ -31,12 +31,7 @@ import Layout from '../layouts/Layout.astro';
       const root = document.getElementById('tools-root');
       if (!root) return;
       try {
-        const data = await fetch('/api/tools/', {
-          headers: { Authorization: 'Basic ' + btoa(unescape(encodeURIComponent(
-            (() => { try { return JSON.parse(localStorage.getItem('opes_auth') || '{}'); } catch { return {}; } })().username + ':' +
-            (() => { try { return JSON.parse(localStorage.getItem('opes_auth') || '{}'); } catch { return {}; } })().password
-          ))) },
-        }).then(r => r.json());
+        const data = await api.tools();
         const items = data.items || [];
         if (items.length === 0) {
           root.innerHTML = '<div class="card text-sm text-muted">No hay tools registradas.</div>';

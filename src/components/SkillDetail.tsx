@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { sitePath } from '../lib/site-path';
 import type { Skill } from '../lib/types';
 import SkillMarkdown from './SkillMarkdown';
 
@@ -23,7 +24,8 @@ export default function SkillDetail() {
     let cancelled = false;
     async function load() {
       const parts = window.location.pathname.split('/').filter(Boolean);
-      const name = parts[1] ?? '';
+      const skillsIndex = parts.indexOf('skills');
+      const name = skillsIndex >= 0 ? parts[skillsIndex + 1] ?? '' : '';
       if (!name) {
         if (!cancelled) setError('Nombre de skill inválido');
         if (!cancelled) setLoading(false);
@@ -61,13 +63,13 @@ export default function SkillDetail() {
   const version = fm.version ?? '—';
   const description = fm.description ?? '(sin descripción)';
   const fmEntries = Object.entries(fm);
-  const editHref = `/skills/${skill.name}/edit`;
+  const editHref = sitePath(`/skills/${skill.name}/edit`);
 
   return (
     <div data-testid="skill-detail">
       <div className="mb-4 flex items-center justify-between">
         <a
-          href="/skills"
+          href={sitePath('/skills')}
           className="text-sm text-brand-600 hover:text-brand-700"
         >
           &larr; Volver a skills

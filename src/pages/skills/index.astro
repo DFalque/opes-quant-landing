@@ -22,6 +22,7 @@ import Layout from '../../layouts/Layout.astro';
 
   <script>
     import { api } from '../../lib/api';
+    import { sitePath } from '../../lib/site-path';
 
     async function load() {
       const root = document.getElementById('skills-root');
@@ -41,7 +42,7 @@ import Layout from '../../layouts/Layout.astro';
                 return `
                   <li class="px-6 py-4 flex items-center justify-between">
                     <div>
-                      <a href="/skills/${s.name}" class="font-mono text-sm font-semibold text-brand-600 hover:text-brand-700">${s.name}</a>
+                      <a href="${sitePath(`/skills/${s.name}`)}" class="font-mono text-sm font-semibold text-brand-600 hover:text-brand-700">${s.name}</a>
                       <p class="text-xs text-muted mt-1 line-clamp-1">${description}</p>
                     </div>
                     <span class="text-xs font-mono text-muted">v${version}</span>

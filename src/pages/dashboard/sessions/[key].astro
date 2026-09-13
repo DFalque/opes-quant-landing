@@ -10,6 +10,7 @@
  * the React island reads the actual session_key from window.location.
  */
 import Layout from '../../../layouts/Layout.astro';
+import { sitePath } from '../../../lib/site-path';
 
 export function getStaticPaths() {
   return [{ params: { key: '__placeholder__' } }];
@@ -21,7 +22,7 @@ export function getStaticPaths() {
       Detalle de sesión
     </h2>
     <p class="text-sm text-muted mt-1">
-      <a href="/dashboard/sessions" class="text-brand-600 hover:underline">← Volver a la lista</a>
+      <a href={sitePath('/dashboard/sessions')} class="text-brand-600 hover:underline">← Volver a la lista</a>
     </p>
   </div>
 

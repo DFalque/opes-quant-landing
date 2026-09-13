@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { api, setStoredAuth, ApiError } from '../lib/api';
 import type { User } from '../lib/types';
 import { useToastDispatch } from '../lib/toast';
+import { sitePath } from '../lib/site-path';
 
 /**
  * Login form (React island). On submit:
- *   1. Validate credentials by calling /api/auth/me with explicit auth.
- *   2. On success: save to localStorage, dispatch "Bienvenido" toast, redirect to /dashboard.
+ *   1. Send credentials to /api/auth/login.
+ *   2. On success: the backend sets an HttpOnly session cookie, then redirect to /dashboard.
  *   3. On failure: dispatch error toast.
  *
  * Uses the global toast bus (CustomEvent on window) so toasts work even
@@ -23,14 +24,13 @@ export default function LoginForm() {
     if (loading) return; // prevent double submit
     setLoading(true);
     try {
-      // Verify credentials with explicit auth (not from localStorage).
-      const me: User = await api.me(undefined, { username, password });
+      const me: User = await api.login(username, password);
       if (!me) throw new Error('Empty response from server');
-      setStoredAuth({ username, password });
+      setStoredAuth({ username });
       toast.success(`Bienvenido, ${me.username}`, 2500);
       // Small delay so the toast renders before navigation
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = sitePath('/dashboard');
       }, 400);
     } catch (err) {
       setStoredAuth(null);
@@ -51,7 +51,7 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+    <form onSubmit={handleSubmit} className="space-y-4 private-login-form" data-testid="login-form">
       <div>
         <label htmlFor="username" className="label">
           Usuario
@@ -64,6 +64,7 @@ export default function LoginForm() {
           required
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="dfalque"
           className="input"
           autoFocus
           data-testid="username-input"
@@ -90,7 +91,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="btn-primary w-full"
+        className="btn-primary w-full private-login-submit"
         data-testid="submit-btn"
       >
         {loading ? 'Verificando…' : 'Entrar'}

@@ -26,6 +26,7 @@ import Layout from '../../layouts/Layout.astro';
   <script>
     import { api } from '../../lib/api';
     import { formatDateTime, formatDuration, formatTokens, formatCostUsd } from '../../lib/format';
+    import { sitePath } from '../../lib/site-path';
 
     const statusVariant: Record<string, string> = {
       success: 'bg-green-100 text-green-800',
@@ -50,7 +51,7 @@ import Layout from '../../layouts/Layout.astro';
       return `
         <tr class="hover:bg-gray-50">
           <td class="px-4 py-3">
-            <a href="/dashboard/sessions/${encodeURIComponent(s.session_key)}" class="font-mono text-sm font-semibold text-brand-600 hover:underline">${escapeHtml(s.session_key)}</a>
+            <a href="${sitePath(`/dashboard/sessions/${encodeURIComponent(s.session_key)}`)}" class="font-mono text-sm font-semibold text-brand-600 hover:underline">${escapeHtml(s.session_key)}</a>
             <div class="text-xs text-muted mt-0.5">
               ${escapeHtml(s.agent_type ?? 'orchestrator')} · ${escapeHtml(s.model ?? 'unknown')}
               ${s.trigger ? `· <span class="text-gray-500">${escapeHtml(s.trigger)}</span>` : ''}
@@ -128,7 +129,7 @@ import Layout from '../../layouts/Layout.astro';
           </div>
           <div class="text-xs text-muted mt-3" data-testid="sessions-count">
             ${sessions.length} sesiones (mostradas). Para vista agregada con KPIs y gráficos, ver
-            <a href="/dashboard/observability" class="text-brand-600 hover:underline">Observabilidad</a>.
+            <a href="${sitePath('/dashboard/observability')}" class="text-brand-600 hover:underline">Observabilidad</a>.
           </div>
         `;
       } catch (e) {

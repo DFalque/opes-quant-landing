@@ -1,15 +1,45 @@
 ---
-import Layout from '../layouts/Layout.astro';
 import LoginForm from '../components/LoginForm.tsx';
+import ToastContainer from '../components/ToastContainer';
+import { sitePath } from '../lib/site-path';
+import '../styles/global.css';
+import '../styles/private.css';
+
+const homePath = sitePath('/');
 ---
-<Layout title="Login" active={undefined}>
-  <div class="max-w-md mx-auto mt-12">
-    <div class="card">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Iniciar sesión</h2>
-      <p class="text-sm text-muted mb-6">
-        Accede con tu usuario del dashboard.
-      </p>
-      <LoginForm client:load />
-    </div>
-  </div>
-</Layout>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Área privada — OPES</title>
+  </head>
+  <body class="private-login-page">
+    <main class="private-login-shell">
+      <section class="private-login-pitch" aria-labelledby="login-title">
+        <a class="private-login-brand" href={homePath} aria-label="Volver a OPES">
+          <span class="private-login-orbit" aria-hidden="true"><span /></span>
+          <span>opes</span>
+        </a>
+        <div class="private-login-pitch-copy">
+          <span class="private-login-eyebrow">OPES / PRIVATE WORKSPACE</span>
+          <h1 id="login-title">Todo el sistema.<br /><em>En una sola mirada.</em></h1>
+          <p>Accede al centro de operaciones para seguir la cartera, los brokers, la actividad del agente y el flujo de producción.</p>
+        </div>
+        <span class="private-login-footnote">Read-only observability / production</span>
+      </section>
+      <section class="private-login-panel" aria-label="Formulario de acceso">
+        <a class="private-login-back" href={homePath}>← Volver a la landing</a>
+        <div class="private-login-card">
+          <span class="private-login-panel-eyebrow">ACCESO AUTORIZADO</span>
+          <h2>Iniciar sesión</h2>
+          <p>Usa el usuario provisionado en el dashboard para abrir tu workspace privado.</p>
+          <LoginForm client:load />
+          <div class="private-login-note">Las credenciales se validan contra el backend. No se guardan en el código de la landing.</div>
+        </div>
+      </section>
+    </main>
+    <ToastContainer client:load />
+  </body>
+</html>

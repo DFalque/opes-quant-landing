@@ -244,6 +244,12 @@ input { font: inherit; }
 .docs-api-group-intro { max-width: 610px; margin: 17px 0 22px; color: #686963; font-size: 12px; line-height: 1.65; }
 .docs-version-note { margin: 18px 0 22px; border-left: 3px solid var(--docs-lime); padding: 13px 16px; background: rgba(197,255,74,0.28); color: #5e6b39; font-size: 11px; line-height: 1.6; }
 .docs-version-note strong { color: #3c4d15; font-weight: 700; }
+.docs-link-public-card { display: grid; grid-template-columns: 1fr auto; gap: 22px 35px; margin-top: 22px; border: 1px solid rgba(104,143,32,0.42); padding: 23px 24px 25px; background: rgba(197,255,74,0.22); }
+.docs-link-public-card > div:first-child > span, .docs-link-public-points span { color: var(--docs-green); font-family: 'DM Mono', ui-monospace, monospace; font-size: 8px; letter-spacing: 0.1em; }
+.docs-link-public-card strong { display: block; margin-top: 17px; color: var(--docs-ink); font-size: 19px; font-weight: 600; letter-spacing: -0.06em; }
+.docs-link-public-card p { max-width: 580px; margin: 9px 0 0; color: #686963; font-size: 11px; line-height: 1.6; }
+.docs-link-public-points { display: grid; align-content: center; gap: 10px; min-width: 150px; }
+.docs-link-public-card .docs-button { grid-column: 1 / -1; margin-top: 1px; }
 .docs-operation { margin-top: 10px; border: 1px solid var(--docs-line); background: var(--docs-paper); }
 .docs-operation[hidden] { display: none; }
 .docs-operation summary { display: grid; grid-template-columns: minmax(260px, 1.05fr) 1fr auto; gap: 19px; align-items: center; cursor: pointer; list-style: none; padding: 19px 20px; }
@@ -353,6 +359,8 @@ input { font: inherit; }
   .docs-overview-card:last-child, .docs-operation-schema > div:last-child, .docs-planned-grid > div:last-child { border-bottom: 0; }
   .docs-section, .docs-api-section, .docs-concepts-section, .docs-ai-section { padding-top: 92px; }
   .docs-section-heading > p { margin-top: 28px; }
+  .docs-link-public-card { display: block; }
+  .docs-link-public-points { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 22px; }
   .docs-architecture-map { min-height: 245px; }
   .docs-architecture-copy { padding: 29px 23px 32px; }
   .docs-operation summary { grid-template-columns: 1fr auto; gap: 10px; }

@@ -118,12 +118,12 @@ export const linkService: LandingService = {
   slug: 'link',
   name: 'Link',
   category: 'DATA + CONNECTIVITY',
-  copy: 'Conecta las fuentes que importan y convierte el ruido del mundo en contexto.',
+  copy: 'Conecta mercado, opciones, filings y noticias para convertir datos fragmentados en contexto auditable.',
   mark: '↗',
   tone: 'coral',
-  headline: 'El mundo produce ruido. Link encuentra el contexto.',
-  detail: 'Link conecta las fuentes que importan, contrasta sus señales y las convierte en datos listos para que cada inteligencia pueda entender mejor el mercado.',
-  points: ['Macro y sectores', 'Empresa y mercado', 'Contexto contrastado'],
+  headline: 'El mundo produce ruido. Link encuentra la señal de contexto.',
+  detail: 'Link normaliza market data, opciones, fundamentales, noticias y observaciones de broker, conservando provenance temporal para que cada inteligencia pueda entender mejor el mercado.',
+  points: ['Datos con provenance', 'Mercado y opciones', 'Contexto conectado'],
 };
 
 export const landingServices = [...serviceModules, linkService, visionService, decisionLayer];

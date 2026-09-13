@@ -8,6 +8,7 @@
  */
 import Layout from '../../layouts/Layout.astro';
 import ObservabilityDashboard from '../../components/ObservabilityDashboard.tsx';
+import { sitePath } from '../../lib/site-path';
 ---
 <Layout title="Observabilidad" active="observability">
   <div class="mb-6">
@@ -23,7 +24,7 @@ import ObservabilityDashboard from '../../components/ObservabilityDashboard.tsx'
 
   <p class="text-xs text-muted mt-6">
     Detalle por sesión en
-    <a href="/dashboard/sessions" class="text-brand-600 hover:underline">Sesiones</a>.
+    <a href={sitePath('/dashboard/sessions')} class="text-brand-600 hover:underline">Sesiones</a>.
     Pricing activo:
     <code class="font-mono" data-testid="pricing-version">—</code>.
   </p>

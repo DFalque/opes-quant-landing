@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('../lib/api', () => {
   return {
     api: {
-      me: vi.fn(),
+      login: vi.fn(),
     },
     setStoredAuth: vi.fn(),
     ApiError: class ApiError extends Error {
@@ -45,9 +45,9 @@ describe('LoginForm', () => {
   });
 
   it('shows "Verificando..." while submitting', async () => {
-    let resolveMe!: (v: unknown) => void;
-    (api.me as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise((r) => { resolveMe = r; })
+    let resolveLogin!: (v: unknown) => void;
+    (api.login as ReturnType<typeof vi.fn>).mockImplementation(
+      () => new Promise((r) => { resolveLogin = r; })
     );
     render(<LoginForm />);
     fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'alice' } });
@@ -57,11 +57,13 @@ describe('LoginForm', () => {
       expect(screen.getByTestId('submit-btn')).toHaveTextContent('Verificando');
     });
     expect(screen.getByTestId('submit-btn')).toBeDisabled();
-    resolveMe({ id: 1, username: 'alice', role: 'admin' });
+    await act(async () => {
+      resolveLogin({ id: 1, username: 'alice', role: 'admin' });
+    });
   });
 
   it('dispatches success toast and saves auth on successful login', async () => {
-    (api.me as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (api.login as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: 1, username: 'alice', role: 'admin',
     });
     // Mock window.location.href assignment
@@ -74,7 +76,7 @@ describe('LoginForm', () => {
     fireEvent.click(screen.getByTestId('submit-btn'));
 
     await waitFor(() => {
-      expect(setStoredAuth).toHaveBeenCalledWith({ username: 'alice', password: 'pw' });
+      expect(setStoredAuth).toHaveBeenCalledWith({ username: 'alice' });
     });
     await waitFor(() => {
       const success = toastEvents.find((t) => t.variant === 'success');
@@ -84,7 +86,7 @@ describe('LoginForm', () => {
   });
 
   it('dispatches error toast on 401', async () => {
-    (api.me as ReturnType<typeof vi.fn>).mockRejectedValue(
+    (api.login as ReturnType<typeof vi.fn>).mockRejectedValue(
       new (ApiError as unknown as new (s: number, b: unknown) => ApiError)(401, { detail: 'unauthorized' })
     );
     render(<LoginForm />);
@@ -100,7 +102,7 @@ describe('LoginForm', () => {
   });
 
   it('dispatches error toast on network error', async () => {
-    (api.me as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network down'));
+    (api.login as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network down'));
     render(<LoginForm />);
     fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'alice' } });
     fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'pw' } });

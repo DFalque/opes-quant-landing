@@ -46,3 +46,24 @@
 - Findings: `origin/main` avanzó con `3ea8f4a`, que publica Wave `v0.5.1` y alinea el gateway con `wave-analysis-v3`. El portal se actualizó para mostrar el estado desplegado, se preservó el commit remoto y se corrigió un ejemplo JSON que tenía `fibonacciV3` duplicado tras el merge.
 - Eval result: build, 72 tests, smoke Playwright directo, `git diff --check` y GitHub Actions Pages PASS; URL live verificada sin overflow ni errores de consola
 - Next: mantener la referencia sincronizada con nuevas facades y cambios de contrato
+
+[2026-09-13 13:08] Sesión #7
+- Worked on: F-OPS-001
+- Commit: not committed (release pendiente)
+- Findings: Se añadió el acceso privado desde la portada y un Command Center responsive con sesión HttpOnly, KPIs de cartera, cards de Alpaca/IBKR, curva de equity, actividad Hermes, telemetría y flujo de los microservicios. El frontend consume `/api/operations/accounts` y `/api/operations/services`, pero conserva fallbacks explícitos cuando esos endpoints o sus heartbeats no están disponibles. No se incrustó la contraseña en código ni en el bundle.
+- Eval result: PASS (QA independiente: diseño 4/5, originalidad 4/5, craft 4/5, funcionalidad 5/5; build 30 páginas, Vitest 74/74, Playwright desktop/mobile sin overflow ni errores no controlados)
+- Next: provisionar el usuario en la base real y validar en producción cookie `Secure`/`SameSite=None`, CORS y heartbeat de servicios antes de publicar.
+
+[2026-09-13 13:42] Sesión #8
+- Worked on: F-OPS-001 / E2E harness
+- Commit: not committed (release pendiente)
+- Findings: Se corrigió Playwright para arrancar el backend sibling con migraciones Alembic y el Astro dev server en puertos separados. Las expectativas ahora reflejan que `/` es la landing pública, `/dashboard` es el Command Center y los tests de skills usan la ruta placeholder estática. Los smoke tests API apuntan explícitamente al backend.
+- Eval result: Vitest `74/74`, build Astro `30 páginas`, Playwright `18/18`, backend focalizado auth+operations `10/10`. La suite backend completa queda en `127 passed, 3 failed` por un test de resumen que no cuenta sesiones sin métricas y dos tests de backfill con fixture/flag inconsistentes; esos archivos pertenecen al checkout concurrente y no se modificaron.
+- Next: provisionar el usuario en la base real y validar en producción cookie `Secure`/`SameSite=None`, CORS y heartbeat de servicios antes de publicar.
+
+[2026-09-13 15:00] Sesión #9
+- Worked on: F-DOC-004 / F-LINK-002
+- Commit: not committed (release pendiente)
+- Findings: Se añadió un catálogo privado autenticado de Link con 22 operaciones desplegadas: Link Data v0.15.0 y Link Live v0.11.0. El backend sirve solo una referencia sanitizada tras `get_current_user` y `Cache-Control: no-store`; la landing pública muestra únicamente la frontera privada. Se actualizó Link con capacidades reales de market bars, opciones, fundamentales, noticias, provenance, broker observations y price watches. También se alineó la documentación pública con Wave v0.6.0 + MCP y Flux v0.7.1.
+- Eval result: PASS (backend focalizado 12/12, Ruff PASS, catálogo 22/22; frontend Vitest 77/77, Astro build 31 páginas, Playwright directo público/privado y responsive PASS; suite backend completa 130/132 por dos fallos preexistentes de `backfill_iterations` en checkout concurrente)
+- Next: provisionar/validar en el entorno real la sesión HttpOnly y registrar el endpoint `/api/documentation/link` en el release del dashboard; no publicar todavía sin revisar los cambios concurrentes.

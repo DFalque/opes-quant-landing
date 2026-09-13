@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { ApiError } from '../lib/types';
+import { sitePath } from '../lib/site-path';
 import type { AgentSession, SubagentMetric } from '../lib/types';
 import {
   formatCostUsd,
@@ -22,10 +23,10 @@ import {
 
 function getSessionKeyFromUrl(): string {
   // /dashboard/sessions/<key> — key is everything after the prefix
-  const path = window.location.pathname;
-  const prefix = '/dashboard/sessions/';
-  if (!path.startsWith(prefix)) return '';
-  return decodeURIComponent(path.slice(prefix.length));
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const sessionsIndex = parts.indexOf('sessions');
+  if (sessionsIndex < 0) return '';
+  return decodeURIComponent(parts.slice(sessionsIndex + 1).join('/'));
 }
 
 const statusVariant: Record<string, string> = {
@@ -248,7 +249,7 @@ export default function SessionDetail() {
           <p className="text-xs text-muted mt-3">
             El coste total incluye el output del orquestador (heurístico: chars de
             summary.md + README.md / 4) + suma de los costes per-sub-agente. Ver
-            <a href="/dashboard/observability" className="text-brand-600 hover:underline">
+            <a href={sitePath('/dashboard/observability')} className="text-brand-600 hover:underline">
               Observabilidad
             </a>{' '}
             para el agregado en el tiempo.

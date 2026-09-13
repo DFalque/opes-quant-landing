@@ -1,7 +1,8 @@
 /**
  * HTTP client for the FastAPI backend.
  *
- * - Injects `Authorization: Basic <base64(user:pass)>` from localStorage on every request.
+ * - Uses an HttpOnly session cookie after browser login.
+ * - Supports explicit Basic auth for legacy scripts; passwords are never persisted by the UI.
  * - In dev, Vite proxies `/api/*` to the FastAPI server. In prod (GitHub Pages),
  *   the API base is read from `PUBLIC_API_BASE` (see `lib/config.ts`).
  * - Throws `ApiError` on non-2xx so callers can branch on `error.status`.
@@ -9,6 +10,7 @@
 
 import { ApiError, type HealthStatus, type User } from './types';
 import { API_BASE } from './config';
+import type { LinkDocumentation } from './link-documentation';
 
 export { ApiError };
 export type { HealthStatus, User };
@@ -20,27 +22,36 @@ export interface Auth {
   password: string;
 }
 
+export interface StoredAuth {
+  username: string;
+}
+
 function encodeBasic(auth: Auth): string {
   return btoa(`${auth.username}:${auth.password}`);
 }
 
-export function getStoredAuth(): Auth | null {
-  if (typeof localStorage === 'undefined') return null;
-  const raw = localStorage.getItem(STORAGE_KEY);
+export function getStoredAuth(): StoredAuth | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  const raw = sessionStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Auth;
+    const parsed = JSON.parse(raw) as { username?: unknown };
+    return typeof parsed.username === 'string' && parsed.username
+      ? { username: parsed.username }
+      : null;
   } catch {
     return null;
   }
 }
 
-export function setStoredAuth(auth: Auth | null): void {
-  if (typeof localStorage === 'undefined') return;
+export function setStoredAuth(auth: { username: string } | Auth | null): void {
+  if (typeof sessionStorage === 'undefined') return;
   if (auth === null) {
-    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(STORAGE_KEY);
   } else {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ username: auth.username }));
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(STORAGE_KEY);
   }
 }
 
@@ -53,7 +64,7 @@ export interface RequestOpts {
 
 export async function apiFetch<T>(path: string, opts: RequestOpts = {}): Promise<T> {
   const { method = 'GET', body, query, auth } = opts;
-  const usedAuth = auth === undefined ? getStoredAuth() : auth;
+  const usedAuth = auth === undefined ? null : auth;
 
   const url = new URL(`${API_BASE}${path}`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
   if (query) {
@@ -76,7 +87,7 @@ export async function apiFetch<T>(path: string, opts: RequestOpts = {}): Promise
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
-    credentials: 'same-origin',
+    credentials: 'include',
   });
 
   const text = await res.text();
@@ -107,6 +118,13 @@ export async function apiWithCreds<T>(
 export const api = {
   health: () => apiFetch<HealthStatus>('/api/health'),
 
+  login: (username: string, password: string) =>
+    apiFetch<User>('/api/auth/login', {
+      method: 'POST',
+      body: { username, password },
+    }),
+  logout: () => apiFetch<void>('/api/auth/logout', { method: 'POST' }),
+
   me: (_opts?: Record<string, never>, creds?: { username: string; password: string }) => {
     if (creds) {
       return apiFetch<User>('/api/auth/me', { auth: creds });
@@ -115,6 +133,8 @@ export const api = {
   },
   meWithCreds: (username: string, password: string) =>
     apiFetch<User>('/api/auth/me', { auth: { username, password } }),
+  linkDocumentation: () =>
+    apiFetch<LinkDocumentation>('/api/documentation/link'),
   changePassword: (current: string, next: string) =>
     apiFetch<User>('/api/auth/change-password', {
       method: 'POST',
@@ -122,6 +142,8 @@ export const api = {
     }),
 
   portfolio: () => apiFetch<import('./types').PortfolioSummary>('/api/portfolio'),
+  accounts: () => apiFetch<import('./types').BrokerAccountsResponse>('/api/operations/accounts'),
+  services: () => apiFetch<import('./types').ServicesResponse>('/api/operations/services'),
   equityCurve: (range: '1w' | '1m' | '3m' | 'ytd' | 'all' = 'all') =>
     apiFetch<import('./types').EquityCurvePoint[]>('/api/portfolio/equity-curve', {
       query: { range },
@@ -174,6 +196,7 @@ export const api = {
     apiFetch<import('./types').SkillDraft[]>('/api/skills/_drafts/list', {
       query: status ? { status_filter: status } : {},
     }),
+  tools: () => apiFetch<{ items: any[]; total: number; runtime_mounted: boolean }>('/api/tools/'),
   createDraft: (name: string, body: { frontmatter_yaml: string; body_markdown: string; bump_type: 'patch' | 'minor' | 'major' }) =>
     apiFetch<import('./types').SkillDraft>(`/api/skills/${name}/draft`, {
       method: 'POST',

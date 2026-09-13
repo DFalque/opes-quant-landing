@@ -34,6 +34,7 @@ jobs:
         env:
           SITE_URL: https://dfalque.github.io/opes-quant-landing
           BASE_PATH: /opes-quant-landing
+          PUBLIC_API_BASE: ${{ vars.PUBLIC_API_BASE || 'https://opes-quant.82-165-179-157.sslip.io' }}
         run: npm run build
 
       - name: Setup Pages

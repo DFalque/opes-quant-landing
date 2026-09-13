@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, ApiError } from '../lib/api';
+import { api, apiFetch, ApiError } from '../lib/api';
 import type { Skill, SkillDraft } from '../lib/types';
 import SkillMarkdown from './SkillMarkdown';
 
@@ -76,14 +76,9 @@ export default function SkillEditor({ skillName }: Props) {
         bump_type: bumpType,
       });
       // Then publish
-      const result = await fetch(`/api/skills/${skillName}/publish`, {
+      const data = await apiFetch<{ status: string; message: string }>(`/api/skills/${skillName}/publish`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(`${localStorage.getItem('opes_auth') ? JSON.parse(localStorage.getItem('opes_auth')!).username : ''}:${localStorage.getItem('opes_auth') ? JSON.parse(localStorage.getItem('opes_auth')!).password : ''}`)}`,
-        },
       });
-      const data = await result.json();
       if (data.status === 'success') {
         setMessage(`✓ ${data.message}`);
       } else {

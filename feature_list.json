@@ -24,7 +24,7 @@
       "Comprobar las diez rutas de detalle y la navegación móvil",
       "Validar screenshots desktop/mobile sin overflow"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F-ARCH-001",
@@ -80,6 +80,49 @@
       "Filtrar la referencia por `flux` y comprobar que solo queda visible su operación",
       "Abrir la arquitectura pública desde su tarjeta y el contexto llms.txt desde la guía de IA",
       "Validar la página en desktop y mobile sin overflow ni errores de consola"
+    ],
+    "passes": true
+  },
+  {
+    "id": "F-OPS-001",
+    "category": "functional",
+    "description": "La landing ofrece un acceso privado y un Command Center responsive para seguir cartera, brokers, actividad del agente y el flujo de microservicios OPES en producción.",
+    "steps": [
+      "Navegar a / y abrir Área privada",
+      "Iniciar sesión usando el endpoint de sesión del backend",
+      "Ver las tarjetas de Alpaca e Interactive Brokers con estados honestos",
+      "Ver la curva de equity, actividad reciente y telemetría del agente",
+      "Ver el flujo visual de servicios y sus estados de health/heartbeat",
+      "Comprobar el fallback de autenticación y datos parciales",
+      "Validar screenshots desktop/mobile sin overflow"
+    ],
+    "passes": true
+  },
+  {
+    "id": "F-DOC-004",
+    "category": "functional",
+    "description": "La documentación completa de Link está disponible únicamente en un dashboard autenticado y mantiene fuera del bundle público sus contratos privados.",
+    "steps": [
+      "Navegar a /documentation y ver el resumen privado de Link sin rutas internas",
+      "Navegar a /dashboard/documentation sin sesión y ver la solicitud de login",
+      "Con una sesión válida, cargar el catálogo backend de Link Data v0.15.0 y Link Live v0.11.0",
+      "Expandir una operación y ver auth, request, response, errores y boundary",
+      "Filtrar operaciones por ruta o contrato",
+      "Comprobar que los contratos privados no aparecen en el HTML público ni en llms.txt",
+      "Validar screenshots desktop/mobile sin overflow"
+    ],
+    "passes": true
+  },
+  {
+    "id": "F-LINK-002",
+    "category": "content",
+    "description": "La sección comercial de Link comunica market data, opciones, fundamentales, noticias, provenance y price watches sin prometer decisión ni ejecución.",
+    "steps": [
+      "Navegar a /landing/link",
+      "Ver capacidades de market bars, options, SEC XBRL, provenance y live watches",
+      "Ver el flujo CAPTURA, CONTRASTA, CLASIFICA y CONECTA",
+      "Comprobar que Cortex, Atlas, Lens, Intelligence, Wave y Flux aparecen como consumidores",
+      "Validar screenshots desktop/mobile sin overflow"
     ],
     "passes": true
   }

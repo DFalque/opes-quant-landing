@@ -25,7 +25,7 @@ import { sitePath } from '../lib/site-path';
         <div class="docs-topbar-context">
           <span>PUBLIC DOCUMENTATION</span>
           <span class="docs-topbar-divider" aria-hidden="true" />
-          <span>WAVE v0.6.0 · API + MCP</span>
+          <span>WAVE v0.6.0 · FLUX v0.7.1 · DEPLOYED</span>
         </div>
         <nav class="docs-topbar-links" aria-label="Enlaces globales">
           <a href={sitePath('/architecture')}>Arquitectura pública</a>
@@ -55,7 +55,8 @@ import { sitePath } from '../lib/site-path';
               <a href="#wave"><span>02.1</span>Wave</a>
               <a href="#wave-mcp"><span>02.1a</span>Wave MCP</a>
               <a href="#flux"><span>02.2</span>Flux</a>
-              <a href="#planned"><span>02.3</span>Planned APIs</a>
+              <a href="#link"><span>02.3</span>Link / Private boundary</a>
+              <a href="#planned"><span>02.4</span>Planned APIs</a>
             </div>
             <div class="docs-sidebar-group">
               <span>CONSUMERS</span>
@@ -178,7 +179,7 @@ import { sitePath } from '../lib/site-path';
                     </div>
                     <div class="docs-operation-schema">
                       <div><span>RESPONSE SHAPE</span><code>capabilities[]</code><p>id · status · method · path · auth · requestContract · responseContract</p></div>
-                      <div><span>AVAILABLE</span><code>Wave · Flux</code><p>Las dos facades públicas activas en el catálogo actual.</p></div>
+                      <div><span>AVAILABLE</span><code>Wave · Wave MCP · Flux</code><p>Las facades públicas activas en el catálogo actual.</p></div>
                       <div><span>PLANNED</span><code>Vision · Intelligence · Context</code><p>Reservadas para contratos externos propios, no proxies genéricos.</p></div>
                     </div>
                   </div>
@@ -191,7 +192,7 @@ import { sitePath } from '../lib/site-path';
                   <p>Market structure · technical context</p>
                 </div>
                 <p class="docs-api-group-intro">Wave es la primera capa de price action de OPES: transforma identidad de instrumento en evidencia técnica contextual.</p>
-                <div class="docs-version-note"><strong>Version note.</strong> Wave <code>v0.6.0</code> añade una superficie MCP pública y autenticada con una única tool, <code>wave_analyze</code>. La API y el MCP devuelven el mismo contrato <code>wave-analysis-v3</code>.</div>
+                <div class="docs-version-note"><strong>Version note.</strong> Wave <code>v0.6.0</code> está publicado y desplegado: la facade pública devuelve <code>wave-analysis-v3</code>, separa <code>fibonacciV3</code> del Fibonacci legacy y ofrece un MCP Streamable HTTP stateless autenticado con una única tool, <code>wave_analyze</code>.</div>
 
                 <details class="docs-operation docs-operation-primary" open data-api-operation data-search="wave analyze price action structure fibonacci pitchfan public post">
                   <summary>
@@ -326,6 +327,7 @@ import { sitePath } from '../lib/site-path';
                   <p>Derivatives · liquidity positioning</p>
                 </div>
                 <p class="docs-api-group-intro">Flux observa cadena de opciones, volatilidad, skew, GEX proxy y walls. Es la segunda facade pública disponible.</p>
+                <div class="docs-version-note"><strong>Version note.</strong> Flux `v0.7.1` está publicado y disponible detrás del gateway HTTPS con el contrato público `opes-public-flux-analysis-v1`; la superficie no ejecuta órdenes.</div>
                 <details class="docs-operation" open data-api-operation data-search="flux options analyze derivatives liquidity post public">
                   <summary>
                     <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/flux/analyze</code></div>
@@ -349,9 +351,22 @@ import { sitePath } from '../lib/site-path';
                 </details>
               </section>
 
+              <section class="docs-api-group docs-link-public-group" id="link" aria-labelledby="link-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.3</span><h3 id="link-title">Link / Private data boundary</h3></div>
+                  <p>Context infrastructure · internal</p>
+                </div>
+                <p class="docs-api-group-intro">Link conecta market data, opciones, fundamentales, noticias, observaciones de broker y price watches. Sus contratos viven detrás de la frontera privada del dashboard.</p>
+                <div class="docs-link-public-card">
+                  <div><span>DEPLOYED RUNTIMES</span><strong>Link Data v0.15.0 · Link Live v0.11.0</strong><p>Normaliza evidencia, conserva provenance temporal y entrega contexto a Wave, Flux, Atlas, Lens, Cortex e Intelligence. No decide ni ejecuta.</p></div>
+                  <div class="docs-link-public-points"><span>PRIVATE</span><span>READ-ONLY</span><span>NO BROKER WRITES</span></div>
+                  <a class="docs-button" href={sitePath('/login')}>Abrir referencia autorizada <span>↗</span></a>
+                </div>
+              </section>
+
               <section class="docs-api-group" id="planned" aria-labelledby="planned-title">
                 <div class="docs-api-group-heading">
-                  <div><span class="docs-group-index">02.3</span><h3 id="planned-title">Planned APIs</h3></div>
+                  <div><span class="docs-group-index">02.4</span><h3 id="planned-title">Planned APIs</h3></div>
                   <p>Not available for integration</p>
                 </div>
                 <div class="docs-planned-grid">

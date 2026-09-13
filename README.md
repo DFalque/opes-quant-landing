@@ -34,16 +34,20 @@ internas de ejecución.
 ## Portal de documentación pública
 
 `/documentation` separa cuatro recorridos: arquitectura pública, referencia de APIs,
-conceptos de price action y consumidores de IA. La referencia HTTP está agrupada
+conceptos de price action y consumidores de IA. La referencia HTTP pública está agrupada
 como un catálogo tipo Swagger por servicio: capabilities, Wave, Flux y facades
-planned, con método, path, auth, contrato, request, response y boundary.
+planned. Link aparece como una frontera privada; su catálogo completo vive en
+`/dashboard/documentation` y se obtiene desde el backend únicamente después de
+autenticar la sesión.
 
 Wave es la primera capa de price action y documenta la fachada mínima
 `market` + `ticker`, el contrato `wave-analysis-v3`, `fibonacciV3`, provenance,
 errores y límites de ejecución. El gateway público está desplegado con Wave
-`v0.5.1`. `/architecture` conserva el mapa público de alto nivel y no se mezcla
+`v0.6.0` y su MCP stateless. Flux `v0.7.1` también está disponible como facade
+pública. `/architecture` conserva el mapa público de alto nivel y no se mezcla
 con los detalles HTTP.
 
-`/llms.txt` contiene el catálogo y el mismo contrato en Markdown plano para consumidores
+`/llms.txt` contiene el catálogo público y el contrato en Markdown plano para consumidores
 automatizados: APIs disponibles/planned, request exacta, defaults generados por Wave,
-response map, reglas de provenance y límites de no ejecución.
+response map, reglas de provenance y límites de no ejecución. No incluye contratos
+privados de Link.

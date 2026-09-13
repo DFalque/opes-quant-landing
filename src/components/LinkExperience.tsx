@@ -1,32 +1,32 @@
 import { motion, useReducedMotion } from 'motion/react';
 
-const macroTags = ['FED', 'ECB', 'BANCOS CENTRALES', 'GOBIERNOS', 'RESEARCH'];
-const microTags = ['FILINGS', 'NOTICIAS', 'PRECIO', 'FUNDAMENTALES', 'EVENTOS'];
+const macroTags = ['MARKET BARS', 'OPTIONS', 'FUNDAMENTALS', 'NEWS', 'BROKER STATE'];
+const microTags = ['OHLCV', 'OPEN INTEREST', 'SEC XBRL', 'PROVENANCE', 'LIVE WATCHES'];
 
 const enrichmentSteps = [
   {
     index: '01',
     label: 'CAPTURA',
-    title: 'Trae la señal',
-    copy: 'Recoge fuentes oficiales y voces relevantes, respetando su origen y momento.',
+    title: 'Trae el dato',
+    copy: 'Conecta fuentes de mercado y documentación oficial, respetando su origen y momento.',
   },
   {
     index: '02',
     label: 'CONTRASTA',
     title: 'Pone las piezas frente a frente',
-    copy: 'Compara versiones, detecta contradicciones y separa un hecho de una interpretación.',
+    copy: 'Normaliza respuestas, conserva digests y separa el dato observado de la interpretación.',
   },
   {
     index: '03',
     label: 'CLASIFICA',
     title: 'Encuentra la escala',
-    copy: 'Conecta cada evento con su país, sector, empresa, instrumento y horizonte temporal.',
+    copy: 'Une cada observación con su empresa, instrumento, periodo y contexto temporal.',
   },
   {
     index: '04',
     label: 'CONECTA',
     title: 'Entrega contexto',
-    copy: 'El resultado queda listo para Cortex, Atlas, Lens y la capa de decisión de OPES.',
+    copy: 'El resultado queda listo para Wave, Flux, Cortex, Atlas, Lens e Intelligence.',
   },
 ];
 
@@ -90,8 +90,8 @@ function LinkExperience() {
             <span className="link-section-index">THE LINK FLOW / 01</span>
             <h2 id="link-flow-title">Recoge el mundo.<br /><em>Devuelve contexto.</em></h2>
             <p>
-              Link no se limita a buscar información. La reúne, la pone en contexto y
-              la convierte en una lectura que otras inteligencias pueden utilizar.
+              Link no se limita a buscar información. La normaliza, conserva su
+              provenance y la convierte en contexto que otras inteligencias pueden utilizar.
             </p>
           </motion.div>
           <motion.div className="link-flow-coordinates" {...reveal(0.15)} aria-hidden="true">
@@ -127,7 +127,7 @@ function LinkExperience() {
                   <span>MACRO / SECTOR</span>
                 </div>
                 <h3>Lo que mueve el tablero.</h3>
-                <p>Decisiones públicas, economía, sectores y señales que cambian el clima del mercado.</p>
+                <p>Precio, opciones, estado de mercado y fuentes que cambian el clima alrededor de un activo.</p>
                 <div className="link-tag-list">
                   {macroTags.map((tag) => <span key={tag}>{tag}</span>)}
                 </div>
@@ -139,7 +139,7 @@ function LinkExperience() {
                   <span>MICRO / EMPRESA</span>
                 </div>
                 <h3>Lo que explica el activo.</h3>
-                <p>Noticias, filings, precio, fundamentales y eventos alrededor de cada compañía.</p>
+                <p>OHLCV, open interest, filings SEC, fundamentales, noticias y eventos por compañía.</p>
                 <div className="link-tag-list">
                   {microTags.map((tag) => <span key={tag}>{tag}</span>)}
                 </div>
@@ -158,7 +158,7 @@ function LinkExperience() {
                 </div>
               </div>
               <div className="link-engine-label"><i /> ENRICHMENT ENGINE</div>
-              <p>La IA vuelve legible lo que el mundo cuenta de forma fragmentada.</p>
+              <p>La evidencia queda legible sin perder la fecha, el origen ni el límite de confianza.</p>
             </motion.div>
 
             <div className="link-flow-column link-flow-outputs">

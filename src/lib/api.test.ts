@@ -5,22 +5,26 @@ import type { User } from './types';
 describe('stored auth', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('returns null when nothing stored', () => {
     expect(getStoredAuth()).toBeNull();
   });
 
-  it('roundtrips auth via setStoredAuth + getStoredAuth', () => {
+  it('stores only the username in sessionStorage', () => {
     setStoredAuth({ username: 'alice', password: 's3cret' });
-    expect(getStoredAuth()).toEqual({ username: 'alice', password: 's3cret' });
+    expect(getStoredAuth()).toEqual({ username: 'alice' });
+    expect(sessionStorage.getItem('opes_auth')).not.toContain('s3cret');
+    expect(localStorage.getItem('opes_auth')).toBeNull();
   });
 
   it('clears auth when setStoredAuth(null)', () => {
-    setStoredAuth({ username: 'alice', password: 's3cret' });
+    setStoredAuth({ username: 'alice' });
     setStoredAuth(null);
     expect(getStoredAuth()).toBeNull();
   });
@@ -35,7 +39,7 @@ describe('apiFetch', () => {
     vi.restoreAllMocks();
   });
 
-  it('attaches Basic auth header from localStorage', async () => {
+  it('does not attach Basic auth from browser storage and includes cookies', async () => {
     setStoredAuth({ username: 'bob', password: 'pw' });
     const mock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ id: 1, username: 'bob', role: 'admin' }), {
@@ -50,7 +54,8 @@ describe('apiFetch', () => {
     expect(mock).toHaveBeenCalledTimes(1);
     const [, init] = mock.mock.calls[0] as [string, RequestInit];
     const headers = init.headers as Record<string, string>;
-    expect(headers['Authorization']).toBe(`Basic ${btoa('bob:pw')}`);
+    expect(headers['Authorization']).toBeUndefined();
+    expect(init.credentials).toBe('include');
   });
 
   it('does not attach auth when not stored', async () => {

@@ -84,15 +84,16 @@ function LandingPage() {
         </a>
 
         <div id="landing-links" className={`landing-links ${menuOpen ? 'is-open' : ''}`}>
-          <a href="#sistema" onClick={() => setMenuOpen(false)}>El sistema</a>
-           <a href={sitePath('/architecture')} onClick={() => setMenuOpen(false)}>Arquitectura</a>
-           <a href={sitePath('/documentation')} onClick={() => setMenuOpen(false)}>Documentación</a>
-           <a href="#metodo" onClick={() => setMenuOpen(false)}>El método</a>
-          <a href="#criterio" onClick={() => setMenuOpen(false)}>Criterio</a>
+           <a href="#sistema" onClick={() => setMenuOpen(false)}>El sistema</a>
+            <a href={sitePath('/architecture')} onClick={() => setMenuOpen(false)}>Arquitectura</a>
+            <a href={sitePath('/documentation')} onClick={() => setMenuOpen(false)}>Documentación</a>
+            <a href="#metodo" onClick={() => setMenuOpen(false)}>El método</a>
+           <a href="#criterio" onClick={() => setMenuOpen(false)}>Criterio</a>
+           <a href={sitePath('/login')} onClick={() => setMenuOpen(false)}>Área privada</a>
         </div>
 
-        <a className="nav-action" href="#contacto">
-          Explorar OPES <ArrowUpRight />
+        <a className="nav-action" href={sitePath('/login')}>
+          Acceder al dashboard <ArrowUpRight />
         </a>
 
         <button
@@ -156,6 +157,9 @@ function LandingPage() {
               </a>
               <a className="text-link" href={sitePath('/architecture')}>
                 Ver cómo funciona <ArrowUpRight />
+              </a>
+              <a className="text-link landing-private-link" href={sitePath('/login')}>
+                Acceder al workspace <ArrowUpRight />
               </a>
             </motion.div>
           </motion.div>

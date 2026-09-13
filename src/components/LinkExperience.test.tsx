@@ -22,4 +22,13 @@ describe('LinkExperience', () => {
     expect(screen.getByText('Cortex')).toBeInTheDocument();
     expect(screen.getByText('Atlas · Lens · OPES')).toBeInTheDocument();
   });
+
+  it('sells the deployed data capabilities without promising execution', () => {
+    render(<LinkExperience />);
+
+    expect(screen.getByText('MARKET BARS')).toBeInTheDocument();
+    expect(screen.getByText('SEC XBRL')).toBeInTheDocument();
+    expect(screen.getByText('PROVENANCE')).toBeInTheDocument();
+    expect(screen.getByText(/límite de confianza/i)).toBeInTheDocument();
+  });
 });

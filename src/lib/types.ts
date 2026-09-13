@@ -24,6 +24,49 @@ export interface PortfolioSummary {
   last_updated: string;
 }
 
+export type BrokerStatus = 'healthy' | 'stale' | 'degraded' | 'unavailable' | 'unknown';
+
+export interface BrokerAccount {
+  broker: 'alpaca' | 'ibkr';
+  environment: string;
+  status: BrokerStatus;
+  account_id: string | null;
+  currency: string;
+  equity: number | null;
+  cash: number | null;
+  buying_power: number | null;
+  daily_pnl: number | null;
+  daily_pnl_pct: number | null;
+  positions_count: number | null;
+  open_orders_count: number | null;
+  captured_at: string | null;
+  age_seconds: number | null;
+  source: string;
+  message: string | null;
+}
+
+export interface BrokerAccountsResponse {
+  accounts: BrokerAccount[];
+  checked_at: string;
+}
+
+export interface ServiceStatus {
+  id: string;
+  name: string;
+  domain: string;
+  status: 'healthy' | 'stale' | 'degraded' | 'down' | 'unavailable' | 'unknown';
+  version: string | null;
+  last_seen_at: string | null;
+  source: string;
+  message: string | null;
+}
+
+export interface ServicesResponse {
+  services: ServiceStatus[];
+  checked_at: string;
+  source: string;
+}
+
 export interface EquityCurvePoint {
   date: string;
   cash: number;

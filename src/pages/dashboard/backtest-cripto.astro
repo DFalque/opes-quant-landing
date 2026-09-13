@@ -123,16 +123,11 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <script>
+    import { API_BASE } from '../../lib/config';
     // --- Helpers ---
-    function getAuthHeader(): Record<string, string> {
-      const u = (document.querySelector('meta[name="auth-username"]') as HTMLMetaElement)?.content;
-      const p = (document.querySelector('meta[name="auth-password"]') as HTMLMetaElement)?.content;
-      if (!u || !p) return {};
-      return { 'Authorization': 'Basic ' + btoa(u + ':' + p) };
-    }
 
     async function fetchJSON<T>(url: string, opts: RequestInit = {}): Promise<T> {
-      const res = await fetch(url, { ...opts, headers: { ...getAuthHeader(), 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+      const res = await fetch(`${API_BASE}${url}`, { ...opts, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
       if (!res.ok) {
         const detail = await res.json().catch(() => ({ detail: res.statusText }));
         throw new Error(detail.detail || res.statusText);

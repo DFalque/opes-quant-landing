@@ -20,6 +20,7 @@ import Layout from '../../layouts/Layout.astro';
   <script>
     import { api } from '../../lib/api';
     import { formatDateTime } from '../../lib/format';
+    import { sitePath } from '../../lib/site-path';
 
     async function load() {
       const root = document.getElementById('drafts-root');
@@ -53,7 +54,7 @@ import Layout from '../../layouts/Layout.astro';
                 ${drafts.map(d => `
                   <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono">
-                      <a href="/skills/${d.skill_name}/edit" class="text-brand-600 hover:text-brand-700">${d.skill_name}</a>
+                      <a href="${sitePath(`/skills/${d.skill_name}/edit`)}" class="text-brand-600 hover:text-brand-700">${d.skill_name}</a>
                     </td>
                     <td class="px-4 py-3">${d.bump_type}</td>
                     <td class="px-4 py-3">
@@ -67,7 +68,7 @@ import Layout from '../../layouts/Layout.astro';
                     <td class="px-4 py-3">${formatDateTime(d.updated_at)}</td>
                     <td class="px-4 py-3 font-mono text-xs text-muted">${d.commit_sha ? d.commit_sha.slice(0, 7) : '—'}</td>
                     <td class="px-4 py-3 text-right">
-                      <a href="/skills/${d.skill_name}/edit" class="text-brand-600 hover:text-brand-700 text-xs">Editar →</a>
+                      <a href="${sitePath(`/skills/${d.skill_name}/edit`)}" class="text-brand-600 hover:text-brand-700 text-xs">Editar →</a>
                     </td>
                   </tr>
                 `).join('')}

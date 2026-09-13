@@ -9,6 +9,8 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
 - `/architecture`: mapa público de responsabilidades y relaciones entre servicios.
 - `/documentation#api-reference`: referencia HTTP agrupada por servicio, con método,
   path, auth, contratos, request, response y boundaries.
+- `/documentation#link`: resumen público de Link Data y Link Live. Los endpoints y
+  contratos completos de Link requieren sesión y no forman parte de esta superficie.
 - `/documentation#concepts`: conceptos de price action y el lugar de Wave dentro de OPES.
 - `/documentation#ai`: reglas para consumidores humanos y agentes de IA.
 
@@ -20,10 +22,15 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
 - The catalog contains only sanitized method/path/status/contract metadata. It does
   not expose private URLs, providers, credentials or internal service ports.
 - `public.wave.analysis` is `available` at `POST /api/wave/analyze`.
-- `public.wave.mcp` is `available` at `POST /api/v1/wave/mcp`.
-- `public.flux.analysis` is `available` at `POST /api/v1/flux/analyze`.
+- `public.wave.mcp` is `available` at `POST /api/v1/wave/mcp` for MCP-compatible
+  hosts. It exposes one tool, `wave_analyze(market,ticker)`, over stateless
+  Streamable HTTP with Bearer authentication.
+- `public.flux.analysis` is `available` at `POST /api/v1/flux/analyze` on deployed
+  Flux `v0.7.1`, with response contract `opes-public-flux-analysis-v1`.
 - `public.vision.render`,
   `public.intelligence.analysis` and `public.context.query` are `planned`.
+- Link Data (`v0.15.0`) and Link Live (`v0.11.0`) are private internal services;
+  they are not public API endpoints.
 
 ## Wave public API
 
@@ -45,6 +52,10 @@ Wave adds an authenticated public MCP endpoint with a single `wave_analyze` tool
 The existing public HTTP facade remains available and both surfaces return the
 same `wave-analysis-v3` evidence contract. Fibonacci Context V3 remains the
 separate `fibonacciV3` field; component-specific MCP tools are not exposed yet.
+Wave publishes the `wave-analysis-v3` response contract and Fibonacci Context V3
+as the separate `fibonacciV3` field. The public gateway and capability catalog
+are aligned with the deployed Wave `v0.6.0` runtime. The same gateway exposes a
+stateless MCP transport with the single `wave_analyze` tool for compatible hosts.
 The internal contract still carries request identity, trace identity, cutoff,
 timeframe, horizon, freshness policy and required domains. The public caller does
 not need to construct those fields.
@@ -184,3 +195,16 @@ The hard boundary is always:
 Wave is exposed through the HTTPS dashboard proxy. Link remains private. The
 public endpoint is read-only and never receives broker credentials, never calls a
 broker trading capability and never creates an order.
+
+## Link private boundary
+
+Link is the private data and connectivity layer behind the public facades. It
+normalizes market bars, options, fundamentals, news, broker observations and
+price-watch events while preserving provenance (`asOf`, `availableAt`,
+`retrievedAt`, PIT status and digests). The authenticated dashboard contains the
+full operation reference for Link Data and Link Live. No Link bearer token,
+private address, provider credential or internal payload is published here.
+
+The hard boundary remains analysis-only: Link does not authorize, create, cancel
+or replace broker orders. Link Live can create and cancel its own temporary price
+watches, but those lifecycle changes are not broker writes.
