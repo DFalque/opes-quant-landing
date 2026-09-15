@@ -512,7 +512,7 @@ wave_review_submit(&#123;
               <article><span>01 / STRUCTURE</span><h3>Market structure</h3><p>Pivots, HH, HL, LH, LL y dirección contextual. Describe el comportamiento observado, no una orden.</p></article>
               <article><span>02 / FIBONACCI</span><h3>Fibonacci context</h3><p>Fibonacci legacy y `fibonacciV3` separado: anclajes, perspectivas diaria, rangos, reacciones y alternativas.</p></article>
               <article><span>03 / VOLUME</span><h3>Volume profile</h3><p>POC, value area, HVN, LVN y posición del precio dentro del rango analizado.</p></article>
-              <article><span>04 / GEOMETRY</span><h3>Pitchfan &amp; fan</h3><p>Geometrías, contactos y reacciones con provenance; el intradía completa lineage, no se convierte automáticamente en señal.</p></article>
+              <article><span>04 / GEOMETRY</span><h3>Pitchfan and fan</h3><p>Geometrías, contactos y reacciones con provenance; el intradía completa lineage, no se convierte automáticamente en señal.</p></article>
             </div>
             <div class="docs-note-row"><span>BOUNDARY</span><p>Wave proporciona contexto técnico. Riesgo, sizing, permisos y ejecución pertenecen a otras fronteras.</p></div>
           </section>
@@ -580,7 +580,10 @@ wave_review_submit(&#123;
   apiSearch?.addEventListener('input', () => {
     const query = apiSearch.value.trim().toLowerCase();
     operations.forEach((operation) => {
-      operation.hidden = Boolean(query) && !(operation.dataset.search ?? '').includes(query);
+      operation.hidden = Boolean(query);
+      if (!operation.hidden) {
+        operation.hidden = !(operation.dataset.search ?? '').includes(query);
+      }
     });
   });
 </script>
