@@ -25,7 +25,7 @@ import { sitePath } from '../lib/site-path';
         <div class="docs-topbar-context">
           <span>PUBLIC DOCUMENTATION</span>
           <span class="docs-topbar-divider" aria-hidden="true" />
-          <span>WAVE v0.6.0 + REVIEW v0.7.3 · FLUX v0.7.1 · ATLAS v0.2.0</span>
+          <span>WAVE v0.6.0 + REVIEW v0.7.3 · FLUX v0.7.1 · ATLAS v0.2.2</span>
         </div>
         <nav class="docs-topbar-links" aria-label="Enlaces globales">
           <a href={sitePath('/architecture')}>Arquitectura pública</a>
@@ -183,6 +183,7 @@ import { sitePath } from '../lib/site-path';
                     <div class="docs-operation-schema">
                       <div><span>RESPONSE SHAPE</span><code>capabilities[]</code><p>id · status · method · path · auth · requestContract · responseContract</p></div>
                       <div><span>AVAILABLE</span><code>Wave · Wave MCP · Flux</code><p>Las facades públicas activas en el catálogo actual.</p></div>
+                      <div><span>DEGRADED</span><code>Atlas</code><p>La facade está desplegada, pero espera la promoción del provider macro de Link.</p></div>
                       <div><span>PLANNED</span><code>Vision · Intelligence · Context</code><p>Reservadas para contratos externos propios, no proxies genéricos.</p></div>
                     </div>
                   </div>
@@ -428,7 +429,7 @@ wave_review_submit(&#123;
                   <p>Macro regime · dated events · read-only</p>
                 </div>
                 <p class="docs-api-group-intro">Atlas explica el contexto macro que rodea al mercado: factores, régimen, noticias y reacción temporal observada. No produce decisiones ni órdenes.</p>
-                <div class="docs-version-note"><strong>Version note.</strong> Atlas `v0.2.0` está publicado y el gateway HTTPS expone la facade. El upstream Link macro está pendiente de promoción; hasta entonces una request autenticada puede devolver `502` sanitizado.</div>
+                <div class="docs-version-note"><strong>Version note.</strong> Atlas `v0.2.2` está publicado y el gateway HTTPS expone la facade. El upstream Link macro está pendiente de promoción; hasta entonces una request autenticada puede devolver `502` sanitizado.</div>
                 <details class="docs-operation docs-operation-primary" open data-api-operation data-search="atlas macro context news fed reactions public">
                   <summary>
                     <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/atlas/macro/context</code></div>
