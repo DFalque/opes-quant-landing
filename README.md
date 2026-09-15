@@ -43,9 +43,11 @@ autenticar la sesión.
 Wave es la primera capa de price action y documenta la fachada mínima
 `market` + `ticker`, el contrato `wave-analysis-v3`, `fibonacciV3`, provenance,
 errores y límites de ejecución. El gateway público está desplegado con Wave
-`v0.6.0` y su MCP stateless. Flux `v0.7.1` también está disponible como facade
-pública. `/architecture` conserva el mapa público de alto nivel y no se mezcla
-con los detalles HTTP.
+`v0.6.0` y su MCP stateless. Wave Review `v0.7.3` también está disponible como
+MCP separado: mantiene una sesión efímera para que el LLM del host interprete
+secuencialmente Trend, Fibonacci, Volume, Pattern y Pitchfan. Flux `v0.7.1`
+también está disponible como facade pública. `/architecture` conserva el mapa
+público de alto nivel y no se mezcla con los detalles HTTP.
 
 `/llms.txt` contiene el catálogo público y el contrato en Markdown plano para consumidores
 automatizados: APIs disponibles/planned, request exacta, defaults generados por Wave,

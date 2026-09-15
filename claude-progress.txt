@@ -67,3 +67,10 @@
 - Findings: Se añadió un catálogo privado autenticado de Link con 22 operaciones desplegadas: Link Data v0.15.0 y Link Live v0.11.0. El backend sirve solo una referencia sanitizada tras `get_current_user` y `Cache-Control: no-store`; la landing pública muestra únicamente la frontera privada. Se actualizó Link con capacidades reales de market bars, opciones, fundamentales, noticias, provenance, broker observations y price watches. También se alineó la documentación pública con Wave v0.6.0 + MCP y Flux v0.7.1.
 - Eval result: PASS (backend focalizado 12/12, Ruff PASS, catálogo 22/22; frontend Vitest 77/77, Astro build 31 páginas, Playwright directo público/privado y responsive PASS; suite backend completa 130/132 por dos fallos preexistentes de `backfill_iterations` en checkout concurrente)
 - Next: provisionar/validar en el entorno real la sesión HttpOnly y registrar el endpoint `/api/documentation/link` en el release del dashboard; no publicar todavía sin revisar los cambios concurrentes.
+
+[2026-09-15 09:20] Sesión #10
+- Worked on: F-DOC-005
+- Commit: pendiente de release
+- Findings: Se documentó la diferencia entre el MCP determinista `/api/v1/wave/mcp` y el MCP client-mediated `/api/v1/wave/review/mcp`, incluyendo tools, orden de stages, configuración OpenCode por variable de entorno, TTL de 30 minutos y responsabilidad del LLM/coste en el host cliente. `public/llms.txt` quedó alineado sin secretos.
+- Eval result: PASS (Vitest 77/77, build Astro 31 páginas, Playwright independiente desktop/mobile; diseño 4/5, originalidad 4/5, craft 4/5, funcionalidad 4/5; sin overflow ni errores de consola)
+- Next: publicar el release de Landing y mantener la referencia sincronizada con cambios de Wave Review

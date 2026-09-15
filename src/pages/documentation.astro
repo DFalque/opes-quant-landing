@@ -25,7 +25,7 @@ import { sitePath } from '../lib/site-path';
         <div class="docs-topbar-context">
           <span>PUBLIC DOCUMENTATION</span>
           <span class="docs-topbar-divider" aria-hidden="true" />
-          <span>WAVE v0.6.0 · FLUX v0.7.1 · DEPLOYED</span>
+          <span>WAVE v0.6.0 + REVIEW v0.7.3 · FLUX v0.7.1</span>
         </div>
         <nav class="docs-topbar-links" aria-label="Enlaces globales">
           <a href={sitePath('/architecture')}>Arquitectura pública</a>
@@ -54,6 +54,7 @@ import { sitePath } from '../lib/site-path';
               <a href="#catalog"><span>02.0</span>Capabilities catalog</a>
               <a href="#wave"><span>02.1</span>Wave</a>
               <a href="#wave-mcp"><span>02.1a</span>Wave MCP</a>
+              <a href="#wave-review-mcp"><span>02.1b</span>Wave Review MCP</a>
               <a href="#flux"><span>02.2</span>Flux</a>
               <a href="#link"><span>02.3</span>Link / Private boundary</a>
               <a href="#planned"><span>02.4</span>Planned APIs</a>
@@ -83,7 +84,7 @@ import { sitePath } from '../lib/site-path';
               </div>
               <div class="docs-overview-status">
                 <div><span>PUBLIC SURFACE</span><strong>HTTPS / API + MCP</strong></div>
-                <div><span>AVAILABLE NOW</span><strong>WAVE API · WAVE MCP · FLUX</strong></div>
+                <div><span>AVAILABLE NOW</span><strong>WAVE API · WAVE MCP · REVIEW MCP · FLUX</strong></div>
                 <div><span>PRIVATE BY DESIGN</span><strong>LINK · CORTEX · BROKER</strong></div>
               </div>
             </div>
@@ -192,7 +193,7 @@ import { sitePath } from '../lib/site-path';
                   <p>Market structure · technical context</p>
                 </div>
                 <p class="docs-api-group-intro">Wave es la primera capa de price action de OPES: transforma identidad de instrumento en evidencia técnica contextual.</p>
-                <div class="docs-version-note"><strong>Version note.</strong> Wave <code>v0.6.0</code> está publicado y desplegado: la facade pública devuelve <code>wave-analysis-v3</code>, separa <code>fibonacciV3</code> del Fibonacci legacy y ofrece un MCP Streamable HTTP stateless autenticado con una única tool, <code>wave_analyze</code>.</div>
+                <div class="docs-version-note"><strong>Version note.</strong> Wave determinista <code>v0.6.0</code> y Wave Review <code>v0.7.3</code> están publicados y desplegados como superficies separadas. La primera devuelve <code>wave-analysis-v3</code> con una única tool, <code>wave_analyze</code>; la segunda encadena revisión razonada con el LLM del host cliente.</div>
 
                 <details class="docs-operation docs-operation-primary" open data-api-operation data-search="wave analyze price action structure fibonacci pitchfan public post">
                   <summary>
@@ -293,6 +294,74 @@ import { sitePath } from '../lib/site-path';
                       <div><span>BOUNDARY</span><code>analysis-only</code><p>No produce BUY, SELL, HOLD, sizing, permisos ni órdenes.</p></div>
                     </div>
                     <div class="docs-operation-links"><a href="#ai">Cómo debe interpretarlo una IA ↗</a><span>El token se solicita y configura fuera del prompt.</span></div>
+                  </div>
+                </details>
+
+                <details class="docs-operation docs-operation-primary" id="wave-review-mcp" open data-api-operation data-search="wave review mcp client mediated reasoning llm agent start submit sequential trend fibonacci volume pattern pitchfan final">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/wave/review/mcp</code></div>
+                    <span class="docs-operation-title">MCP de revisión razonada para agentes</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>TRANSPORT</span><strong>Streamable HTTP</strong><span>RESPONSE</span><strong>wave-review-final-v1</strong></div>
+                    <p class="docs-operation-description">Una segunda superficie de Wave para que el host del cliente ejecute su propio LLM sobre evidencia determinista. Wave no recibe credenciales de proveedor, no usa sampling MCP y no decide ni ejecuta: entrega cada turno con input, instrucciones y schema para que el cliente lo interprete y lo devuelva validado.</p>
+                    <div class="docs-mcp-primer">
+                      <div class="docs-mcp-definition">
+                        <span>DOS MCP, DOS RESPONSABILIDADES</span>
+                        <strong>Determinista para consultar. Review para razonar con tu modelo.</strong>
+                        <p><code>/api/v1/wave/mcp</code> expone una llamada stateless a <code>wave_analyze</code>. <code>/api/v1/wave/review/mcp</code> mantiene una sesión efímera y secuencial: Wave calcula la evidencia y tu host aporta la interpretación de cada stage.</p>
+                      </div>
+                      <ol class="docs-mcp-steps" aria-label="Cómo utiliza un LLM el MCP de revisión de Wave">
+                        <li><span>01</span><div><strong>Conecta</strong><p>Configura la URL y un Bearer en tu host MCP. El token debe vivir en una variable de entorno o secret manager.</p></div></li>
+                        <li><span>02</span><div><strong>Inicia</strong><p>Llama <code>wave_review_start</code> con solo <code>market</code> y <code>ticker</code>. El servidor crea el reviewId y entrega el primer turno.</p></div></li>
+                        <li><span>03</span><div><strong>Interpreta</strong><p>Tu LLM lee las instrucciones, input y outputSchema del turno sin inventar refs ni lenguaje operativo.</p></div></li>
+                        <li><span>04</span><div><strong>Entrega</strong><p>Llama <code>wave_review_submit</code> con <code>reviewId</code>, <code>callId</code> y el JSON estructurado. Repite mientras el transporte siga pendiente.</p></div></li>
+                      </ol>
+                    </div>
+                    <div class="docs-mcp-flow" aria-label="Flujo de una revisión MCP razonada">
+                      <span>START</span><i>→</i><span>LLM CLIENTE</span><i>→</i><span>SUBMIT</span><i>→</i><span>NUEVO TURNO</span><i>→</i><span>FINAL</span>
+                    </div>
+                    <div class="docs-request-response-grid">
+                      <div>
+                        <span class="docs-code-label">OPENCODE / REMOTE MCP</span>
+                        <div class="docs-code-block">
+                          <div class="docs-code-topline"><span>JSON / CLIENT CONFIG</span><button type="button" data-copy="wave-review-mcp-config">Copiar</button></div>
+                          <pre id="wave-review-mcp-config"><code>&#123;
+  &quot;$schema&quot;: &quot;https://opencode.ai/config.json&quot;,
+  &quot;mcp&quot;: &#123;
+    &quot;opes-wave-review&quot;: &#123;
+      &quot;type&quot;: &quot;remote&quot;,
+      &quot;url&quot;: &quot;https://opes-quant.82-165-179-157.sslip.io/api/v1/wave/review/mcp&quot;,
+      &quot;headers&quot;: &#123;
+        &quot;Authorization&quot;: &quot;Bearer &#123;env:OPES_WAVE_REVIEW_TOKEN&#125;&quot;
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre>
+                        </div>
+                      </div>
+                      <div>
+                        <span class="docs-code-label">TOOLS / INPUTS</span>
+                        <div class="docs-code-block docs-code-dark"><pre><code>wave_review_start(&#123;
+  &quot;market&quot;: &quot;US&quot;,
+  &quot;ticker&quot;: &quot;AAPL&quot;
+&#125;)
+
+wave_review_submit(&#123;
+  &quot;reviewId&quot;: &quot;&lt;reviewId&gt;&quot;,
+  &quot;callId&quot;: &quot;&lt;callId&gt;&quot;,
+  &quot;answer&quot;: &#123; &quot;...&quot;: &quot;según outputSchema&quot; &#125;
+&#125;)</code></pre></div>
+                      </div>
+                    </div>
+                    <div class="docs-note-row"><span>ORDEN FIJO</span><p><strong>Trend → Fibonacci → Volume → Pattern → Pitchfan → assembly.</strong> La sesión tiene TTL por defecto de 30 minutos, cuotas y turnos acotados. Los callId son de un solo uso y el replay válido es idempotente.</p></div>
+                    <div class="docs-operation-schema">
+                      <div><span>HOST RESPONSIBILITY</span><code>LLM + provider</code><p>El modelo, sus tokens y su coste pertenecen al host del cliente. Wave solo valida y coordina.</p></div>
+                      <div><span>FINAL STATES</span><code>final / DEGRADED</code><p>Una revisión puede terminar <code>COMPLETE</code> o <code>DEGRADED</code>. Conserva <code>UNVERIFIED</code>, <code>stale</code>, <code>partial</code> e insuficiencia de datos.</p></div>
+                      <div><span>BOUNDARY</span><code>analysis-only</code><p>Siempre <code>executionEligible=false</code> y <code>ordersCreated=0</code>. No hay broker, permisos, sizing ni órdenes.</p></div>
+                    </div>
+                    <div class="docs-operation-links"><a href="#wave-mcp">Comparar con el MCP determinista ↗</a><a href="#ai">Política para consumidores IA ↗</a><span>No pongas el token en un prompt ni en el JSON de respuesta.</span></div>
                   </div>
                 </details>
 
@@ -406,6 +475,7 @@ import { sitePath } from '../lib/site-path';
                 <div><span>03</span><p><strong>Perspectivas separadas.</strong> No conviertas `partial`, arrays vacíos o `unavailable` en una dirección.</p></div>
                 <div><span>04</span><p><strong>Sin órdenes.</strong> Nunca derives BUY, SELL, HOLD, sizing o permiso solo desde estas facades.</p></div>
                 <div><span>05</span><p><strong>MCP mantiene el contrato.</strong> <code>wave_analyze</code> añade instrucciones de lectura, pero su evidencia estructurada sigue siendo <code>wave-analysis-v3</code>.</p></div>
+                <div><span>06</span><p><strong>Review es client-mediated.</strong> En <code>wave_review_start</code>/<code>wave_review_submit</code>, el LLM, sus credenciales y su coste permanecen en el host; el servidor coordina y valida.</p></div>
               </div>
               <div class="docs-ai-contract">
                 <span class="docs-code-label">MACHINE INTERPRETATION POLICY</span>

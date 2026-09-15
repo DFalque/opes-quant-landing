@@ -125,5 +125,19 @@
       "Validar screenshots desktop/mobile sin overflow"
     ],
     "passes": true
+  },
+  {
+    "id": "F-DOC-005",
+    "category": "functional",
+    "description": "La documentación pública distingue el MCP determinista de Wave del MCP de revisión razonada ejecutado por el LLM del host cliente.",
+    "steps": [
+      "Navegar a /documentation",
+      "Ver /api/v1/wave/mcp y /api/v1/wave/review/mcp como operaciones separadas",
+      "Ver wave_review_start, wave_review_submit y el orden Trend → Fibonacci → Volume → Pattern → Pitchfan",
+      "Ver configuración OpenCode con {env:OPES_WAVE_REVIEW_TOKEN} sin un token real",
+      "Filtrar por review y comprobar que solo queda la operación razonada",
+      "Validar screenshots desktop/mobile sin overflow ni errores de consola"
+    ],
+    "passes": true
   }
 ]

@@ -161,6 +161,14 @@ test.describe('static pages', () => {
     await expect(page.locator('#catalog')).toContainText('opes-public-capabilities-v1');
     await expect(page.locator('#wave details[data-search*="price action structure"]')).toContainText('/api/wave/analyze');
     await expect(page.locator('#wave')).toContainText('/api/v1/wave/mcp');
+    await expect(page.locator('#wave')).toContainText('/api/v1/wave/review/mcp');
+    await expect(page.locator('#wave-review-mcp')).toContainText('wave_review_start');
+    await expect(page.locator('#wave-review-mcp')).toContainText('wave_review_submit');
+    await expect(page.locator('#wave-review-mcp')).toContainText('Trend');
+    await expect(page.locator('#wave-review-mcp')).toContainText('Pitchfan');
+    await expect(page.locator('#wave-review-mcp')).toContainText('{env:OPES_WAVE_REVIEW_TOKEN}');
+    await expect(page.locator('#wave-review-mcp')).toContainText('executionEligible=false');
+    await expect(page.locator('#wave-review-mcp')).not.toContainText('Bearer ey');
     await expect(page.locator('#link')).toContainText('Link Data v0.15.0');
     await expect(page.locator('#link')).toContainText('Link Live v0.11.0');
     await expect(page.locator('#link')).not.toContainText('/v1/market-bars');
@@ -182,6 +190,10 @@ test.describe('static pages', () => {
     await page.getByLabel('Filtrar endpoints').fill('flux');
     await expect(page.locator('#wave [data-api-operation]:visible')).toHaveCount(0);
     await expect(page.locator('#flux [data-api-operation]:visible')).toHaveCount(1);
+    await page.getByLabel('Filtrar endpoints').fill('');
+    await page.getByLabel('Filtrar endpoints').fill('review');
+    await expect(page.locator('#wave [data-api-operation]:visible')).toHaveCount(1);
+    await expect(page.locator('#wave-mcp[data-api-operation]:visible')).toHaveCount(0);
     await page.getByLabel('Filtrar endpoints').fill('');
 
     const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);

@@ -25,6 +25,10 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
 - `public.wave.mcp` is `available` at `POST /api/v1/wave/mcp` for MCP-compatible
   hosts. It exposes one tool, `wave_analyze(market,ticker)`, over stateless
   Streamable HTTP with Bearer authentication.
+- `public.wave.client-review-mcp` is `available` at
+  `POST /api/v1/wave/review/mcp`. It exposes exactly `wave_review_start` and
+  `wave_review_submit` over authenticated Streamable HTTP and returns
+  `wave-review-final-v1`.
 - `public.flux.analysis` is `available` at `POST /api/v1/flux/analyze` on deployed
   Flux `v0.7.1`, with response contract `opes-public-flux-analysis-v1`.
 - `public.vision.render`,
@@ -43,8 +47,8 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
   or hyphen.
 - Do not send `asOf`, `timeframe`, `horizon`, `currentPrice`, `bars`,
   `instrumentId` or any other field to the public facade.
-- The public facade does not accept or return `aiContext`; LLM review remains a
-  separate private, opt-in boundary.
+- The public facade does not accept or return `aiContext`; client-mediated LLM
+  review is a separate authenticated, opt-in public boundary.
 
 ## What changed in v0.6.0
 
@@ -106,6 +110,27 @@ create broker orders.
 Read `wave_analyze` in this order: identity and `asOf`, provenance/PIT/freshness
 and warnings, then each technical module independently. Preserve partial and
 missing evidence and do not infer execution authority.
+
+## Wave client-mediated review MCP
+
+- Endpoint: `POST https://opes-quant.82-165-179-157.sslip.io/api/v1/wave/review/mcp`.
+- Authentication: `Authorization: Bearer <OPES_WAVE_REVIEW_TOKEN>` is required.
+- Tools: exactly `wave_review_start({market,ticker})` and
+  `wave_review_submit({reviewId,callId,answer})`.
+- Flow: call `wave_review_start`, interpret the returned turn locally with the
+  host LLM, submit the exact structured answer, then repeat until transport
+  status is `final` or the review fails.
+- Fixed stage order: Trend, Fibonacci, Volume, Pattern, Pitchfan, final assembly.
+- The host application owns the LLM provider, credentials, token usage and cost.
+  Wave does not use MCP sampling, BYOK or provider credentials.
+- Sessions are ephemeral and principal-bound. Default TTL is 30 minutes; quotas,
+  turn limits, one-use call IDs and idempotent valid replays remain enforced.
+- `wave-review-final-v1` may be `COMPLETE` or `DEGRADED`. Preserve missing data,
+  `UNVERIFIED`, `stale`, `partial` and insufficiency instead of smoothing them.
+- The service is information-only: `executionEligible=false` and
+  `ordersCreated=0` always. It has no broker, permits, sizing or orders.
+- Never put the Bearer in a prompt or submit chain-of-thought. Use exact
+  `evidenceRefs` supplied by each turn and follow its output schema.
 
 ## Response contract
 
