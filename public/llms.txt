@@ -11,6 +11,8 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
   path, auth, contratos, request, response y boundaries.
 - `/documentation#link`: resumen público de Link Data y Link Live. Los endpoints y
   contratos completos de Link requieren sesión y no forman parte de esta superficie.
+- `/documentation#atlas`: facade pública de contexto macro, eventos FED y reacciones
+  temporales. El token siempre se configura fuera del prompt.
 - `/documentation#concepts`: conceptos de price action y el lugar de Wave dentro de OPES.
 - `/documentation#ai`: reglas para consumidores humanos y agentes de IA.
 
@@ -31,10 +33,29 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
   `wave-review-final-v1`.
 - `public.flux.analysis` is `available` at `POST /api/v1/flux/analyze` on deployed
   Flux `v0.7.1`, with response contract `opes-public-flux-analysis-v1`.
+- `public.atlas.macro.context` is deployed at `POST /api/v1/atlas/macro/context` with
+  response contract `opes-public-atlas-macro-context-v1`; its Link macro provider is
+  currently pending promotion and may return a sanitized `502`.
 - `public.vision.render`,
   `public.intelligence.analysis` and `public.context.query` are `planned`.
 - Link Data (`v0.15.0`) and Link Live (`v0.11.0`) are private internal services;
   they are not public API endpoints.
+
+## Atlas public API
+
+- Endpoint: `POST https://opes-quant.82-165-179-157.sslip.io/api/v1/atlas/macro/context`
+- Authentication: `Authorization: Bearer <ATLAS_PUBLIC_ACCESS_TOKEN>`.
+- Request body: `{"market":"US","horizon":"intraday"}`. `horizon` may be
+  `intraday`, `swing` or `position`; `market` is currently only `US`.
+- The server generates `asOf` with a two-minute delay. Callers cannot provide
+  observations, providers, URLs, credentials or an arbitrary cutoff.
+- The response preserves `publishedAt`, `effectiveAt`, `availableAt`, reaction
+  `startAt`/`endAt`, `pitStatus`, warnings and analysis-only boundaries.
+- Initial market reaction policy: `US:SPY`, `15m`, 60 minutes before and after
+  each normalized macro event.
+- `executionEligible` is always `false` and `ordersCreated` is always `0`.
+- `502` means the internal Link macro provider is unavailable or not yet promoted;
+  it is not a trading signal and must not be retried unboundedly.
 
 ## Wave public API
 

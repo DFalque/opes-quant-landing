@@ -25,7 +25,7 @@ import { sitePath } from '../lib/site-path';
         <div class="docs-topbar-context">
           <span>PUBLIC DOCUMENTATION</span>
           <span class="docs-topbar-divider" aria-hidden="true" />
-          <span>WAVE v0.6.0 + REVIEW v0.7.3 · FLUX v0.7.1</span>
+          <span>WAVE v0.6.0 + REVIEW v0.7.3 · FLUX v0.7.1 · ATLAS v0.2.0</span>
         </div>
         <nav class="docs-topbar-links" aria-label="Enlaces globales">
           <a href={sitePath('/architecture')}>Arquitectura pública</a>
@@ -56,8 +56,9 @@ import { sitePath } from '../lib/site-path';
               <a href="#wave-mcp"><span>02.1a</span>Wave MCP</a>
               <a href="#wave-review-mcp"><span>02.1b</span>Wave Review MCP</a>
               <a href="#flux"><span>02.2</span>Flux</a>
-              <a href="#link"><span>02.3</span>Link / Private boundary</a>
-              <a href="#planned"><span>02.4</span>Planned APIs</a>
+              <a href="#atlas"><span>02.3</span>Atlas / Macro context</a>
+              <a href="#link"><span>02.4</span>Link / Private boundary</a>
+              <a href="#planned"><span>02.5</span>Planned APIs</a>
             </div>
             <div class="docs-sidebar-group">
               <span>CONSUMERS</span>
@@ -84,7 +85,7 @@ import { sitePath } from '../lib/site-path';
               </div>
               <div class="docs-overview-status">
                 <div><span>PUBLIC SURFACE</span><strong>HTTPS / API + MCP</strong></div>
-                <div><span>AVAILABLE NOW</span><strong>WAVE API · WAVE MCP · REVIEW MCP · FLUX</strong></div>
+                <div><span>AVAILABLE NOW</span><strong>WAVE · FLUX · ATLAS FACADE</strong></div>
                 <div><span>PRIVATE BY DESIGN</span><strong>LINK · CORTEX · BROKER</strong></div>
               </div>
             </div>
@@ -420,9 +421,63 @@ wave_review_submit(&#123;
                 </details>
               </section>
 
+              <section class="docs-api-group" id="atlas" aria-labelledby="atlas-title">
+                <div class="docs-api-group-heading">
+                  <div><span class="docs-group-index">02.3</span><h3 id="atlas-title">Atlas / Macro context</h3></div>
+                  <p>Macro regime · dated events · read-only</p>
+                </div>
+                <p class="docs-api-group-intro">Atlas explica el contexto macro que rodea al mercado: factores, régimen, noticias y reacción temporal observada. No produce decisiones ni órdenes.</p>
+                <div class="docs-version-note"><strong>Version note.</strong> Atlas `v0.2.0` está publicado y el gateway HTTPS expone la facade. El upstream Link macro está pendiente de promoción; hasta entonces una request autenticada puede devolver `502` sanitizado.</div>
+                <details class="docs-operation docs-operation-primary" open data-api-operation data-search="atlas macro context news fed reactions public">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/atlas/macro/context</code></div>
+                    <span class="docs-operation-title">Contexto macro público</span>
+                    <span class="docs-operation-state docs-state-legacy">provider pending</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>REQUEST</span><strong>market + horizon</strong><span>RESPONSE</span><strong>opes-public-atlas-macro-context-v1</strong></div>
+                    <p class="docs-operation-description">La facade genera el cutoff en servidor con dos minutos de retraso, consulta Link y conserva las fechas de publicación, efectividad y disponibilidad de eventos FED. Las reactions iniciales usan `US:SPY` en `15m` con ventanas de ±60 minutos.</p>
+                    <div class="docs-request-response-grid">
+                      <div>
+                        <span class="docs-code-label">REQUEST BODY / JSON</span>
+                        <div class="docs-code-block"><pre><code>&#123;
+  &quot;market&quot;: &quot;US&quot;,
+  &quot;horizon&quot;: &quot;intraday&quot;
+&#125;</code></pre></div>
+                      </div>
+                      <div>
+                        <span class="docs-code-label">CURL / EXTERNAL</span>
+                        <div class="docs-code-block docs-code-dark"><pre><code>curl -X POST \
+  https://opes-quant.82-165-179-157.sslip.io/api/v1/atlas/macro/context \
+  -H 'Authorization: Bearer &lt;ATLAS_PUBLIC_ACCESS_TOKEN&gt;' \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;market&quot;:&quot;US&quot;,&quot;horizon&quot;:&quot;intraday&quot;}'</code></pre></div>
+                      </div>
+                    </div>
+                    <div class="docs-operation-schema">
+                      <div><span>DATES</span><code>publishedAt · effectiveAt</code><p>Fechas del anuncio y del movimiento macro. No se sustituyen por retrieval time.</p></div>
+                      <div><span>REACTION</span><code>preEvent · postEvent</code><p>Retorno, volatilidad, cobertura y ventanas `startAt`/`endAt`; no establece causalidad.</p></div>
+                      <div><span>BOUNDARY</span><code>analysis-only</code><p>Siempre `executionEligible=false` y `ordersCreated=0`.</p></div>
+                    </div>
+                    <div class="docs-operation-links"><a href="#ai">Política para consumidores IA ↗</a><span>No publiques el Bearer ni lo incluyas en prompts.</span></div>
+                  </div>
+                </details>
+                <details class="docs-operation" data-api-operation data-search="atlas requirements macro metrics get">
+                  <summary>
+                    <div class="docs-operation-route"><span class="docs-method docs-method-get">GET</span><code>/api/v1/atlas/macro/requirements</code></div>
+                    <span class="docs-operation-title">Catálogo de métricas macro</span>
+                    <span class="docs-operation-state docs-state-available">available</span>
+                  </summary>
+                  <div class="docs-operation-body">
+                    <div class="docs-operation-meta"><span>AUTH</span><strong>none</strong><span>RESPONSE</span><strong>atlas-macro-requirements-v1</strong></div>
+                    <p class="docs-operation-description">Expone las 13 métricas y factores que Atlas requiere de su plano privado de datos. No incluye tokens, providers ni URLs internas.</p>
+                  </div>
+                </details>
+              </section>
+
               <section class="docs-api-group docs-link-public-group" id="link" aria-labelledby="link-title">
                 <div class="docs-api-group-heading">
-                  <div><span class="docs-group-index">02.3</span><h3 id="link-title">Link / Private data boundary</h3></div>
+                  <div><span class="docs-group-index">02.4</span><h3 id="link-title">Link / Private data boundary</h3></div>
                   <p>Context infrastructure · internal</p>
                 </div>
                 <p class="docs-api-group-intro">Link conecta market data, opciones, fundamentales, noticias, observaciones de broker y price watches. Sus contratos viven detrás de la frontera privada del dashboard.</p>
@@ -435,7 +490,7 @@ wave_review_submit(&#123;
 
               <section class="docs-api-group" id="planned" aria-labelledby="planned-title">
                 <div class="docs-api-group-heading">
-                  <div><span class="docs-group-index">02.4</span><h3 id="planned-title">Planned APIs</h3></div>
+                  <div><span class="docs-group-index">02.5</span><h3 id="planned-title">Planned APIs</h3></div>
                   <p>Not available for integration</p>
                 </div>
                 <div class="docs-planned-grid">
@@ -457,7 +512,7 @@ wave_review_submit(&#123;
               <article><span>01 / STRUCTURE</span><h3>Market structure</h3><p>Pivots, HH, HL, LH, LL y dirección contextual. Describe el comportamiento observado, no una orden.</p></article>
               <article><span>02 / FIBONACCI</span><h3>Fibonacci context</h3><p>Fibonacci legacy y `fibonacciV3` separado: anclajes, perspectivas diaria, rangos, reacciones y alternativas.</p></article>
               <article><span>03 / VOLUME</span><h3>Volume profile</h3><p>POC, value area, HVN, LVN y posición del precio dentro del rango analizado.</p></article>
-              <article><span>04 / GEOMETRY</span><h3>Pitchfan & fan</h3><p>Geometrías, contactos y reacciones con provenance; el intradía completa lineage, no se convierte automáticamente en señal.</p></article>
+              <article><span>04 / GEOMETRY</span><h3>Pitchfan &amp; fan</h3><p>Geometrías, contactos y reacciones con provenance; el intradía completa lineage, no se convierte automáticamente en señal.</p></article>
             </div>
             <div class="docs-note-row"><span>BOUNDARY</span><p>Wave proporciona contexto técnico. Riesgo, sizing, permisos y ejecución pertenecen a otras fronteras.</p></div>
           </section>
