@@ -34,14 +34,14 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
 - `public.flux.analysis` is `available` at `POST /api/v1/flux/analyze` on deployed
   Flux `v0.7.1`, with response contract `opes-public-flux-analysis-v1`.
 - `public.atlas.macro.context` is `available` at `POST /api/v1/atlas/macro/context`;
-  Link `v0.16.0` and Atlas `v0.2.2` return the contract
+  Link `v0.16.1` and Atlas `v0.2.2` return the contract
   `opes-public-atlas-macro-context-v1`. Valid responses may be `partial` and
   `UNVERIFIED`; inspect `missingMetricIds` and warnings before interpreting them.
 - `public.atlas.macro.requirements` is `available` at
   `GET /api/v1/atlas/macro/requirements` without authentication.
 - `public.vision.render`,
   `public.intelligence.analysis` and `public.context.query` are `planned`.
-- Link Data (`v0.16.0`) and Link Live (`v0.11.0`) are private internal services;
+- Link Data (`v0.16.1`) and Link Live (`v0.11.0`) are private internal services;
   they are not public API endpoints.
 
 ## Atlas public API
@@ -54,10 +54,11 @@ motor de decisión, riesgo, sizing, permisos ni ejecución.
   observations, providers, URLs, credentials or an arbitrary cutoff.
 - The response preserves `publishedAt`, `effectiveAt`, `availableAt`, reaction
   `startAt`/`endAt`, `pitStatus`, warnings and analysis-only boundaries.
-- Current responses can omit `breadth` (provider is opt-in) and `vix_term_structure`
-  (when CBOE's latest VX snapshot timestamp is later than server-generated `asOf`).
-  The future VX value is not returned or used; the metric appears in
-  `missingMetricIds`. Never treat this as a bearish/bullish signal.
+- In the current deployment, CBOE is disabled; Link does not query or return CBOE-derived
+  `vix`/`vix_term_structure`. `breadth` is also disabled. These IDs appear in
+  `missingMetricIds`; the response preserves valid FRED/ALFRED observations as `partial`.
+- If CBOE is authorized and later enabled, a VX snapshot with `lastUpdate > asOf` is still
+  omitted and flagged. Never treat unavailable metrics as bearish or bullish signals.
 - Initial market reaction policy: `US:SPY`, `15m`, 60 minutes before and after
   each normalized macro event.
 - `executionEligible` is always `false` and `ordersCreated` is always `0`.
