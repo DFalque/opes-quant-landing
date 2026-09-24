@@ -429,7 +429,7 @@ wave_review_submit(&#123;
                   <p>Macro regime · dated events · read-only</p>
                 </div>
                 <p class="docs-api-group-intro">Atlas explica el contexto macro que rodea al mercado: factores, régimen, noticias y reacción temporal observada. No produce decisiones ni órdenes.</p>
-                <div class="docs-version-note"><strong>Version note.</strong> Atlas `v0.2.2`, Link `v0.16.1` y Dashboard/Nginx `v1.14.2` están publicados. El smoke HTTPS autenticado devuelve `200/partial` con `pitStatus=UNVERIFIED` y 10 métricas FRED/ALFRED; `breadth`, `vix` y `vix_term_structure` están ausentes. CBOE está desactivado en este deployment; no se publican datos CBOE.</div>
+                <div class="docs-version-note"><strong>Version note.</strong> Atlas `v0.2.2`, Link `v0.16.2` y Dashboard/Nginx `v1.14.2` están publicados. El smoke HTTPS autenticado devuelve `200/partial` con `pitStatus=UNVERIFIED` y 10 métricas FRED/ALFRED; `breadth`, `vix` y `vix_term_structure` están ausentes. CBOE y Yahoo breadth están desactivados mientras no se autorice el uso y la redistribución de sus datos.</div>
                 <details class="docs-operation docs-operation-primary" open data-api-operation data-search="atlas macro context news fed reactions public">
                   <summary>
                     <div class="docs-operation-route"><span class="docs-method docs-method-post">POST</span><code>/api/v1/atlas/macro/context</code></div>
@@ -438,7 +438,7 @@ wave_review_submit(&#123;
                   </summary>
                   <div class="docs-operation-body">
                     <div class="docs-operation-meta"><span>AUTH</span><strong>Bearer dedicado</strong><span>REQUEST</span><strong>market + horizon</strong><span>RESPONSE</span><strong>opes-public-atlas-macro-context-v1</strong></div>
-                    <p class="docs-operation-description">La facade genera el cutoff en servidor con dos minutos de retraso y consulta Link. La respuesta puede ser `partial`: conserva FRED/ALFRED temporalmente válidos, identifica `missingMetricIds` y mantiene `pitStatus=UNVERIFIED`. CBOE está desactivado en este deployment y no se consulta ni emite VIX/VX. Los eventos FED preservan publicación, efectividad y disponibilidad; las reactions usan `US:SPY` en `15m` con ventanas de ±60 minutos.</p>
+                    <p class="docs-operation-description">La facade genera el cutoff en servidor con dos minutos de retraso y consulta Link. La respuesta puede ser `partial`: conserva FRED/ALFRED temporalmente válidos, identifica `missingMetricIds` y mantiene `pitStatus=UNVERIFIED`. CBOE y Yahoo breadth están desactivados en este deployment; no se consultan ni emiten VIX/VX/breadth. Los eventos FED preservan publicación, efectividad y disponibilidad; las reactions usan `US:SPY` en `15m` con ventanas de ±60 minutos.</p>
                     <div class="docs-request-response-grid">
                       <div>
                         <span class="docs-code-label">REQUEST BODY / JSON</span>
